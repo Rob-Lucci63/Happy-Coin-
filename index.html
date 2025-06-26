@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="fa">
+<head>
+  <meta charset="UTF-8">
+  <title>کلیک سکه خفن</title>
+  <style>
+    body {
+      background: #fffbe6;
+      font-family: Tahoma, sans-serif;
+      text-align: center;
+      padding: 50px;
+      position: relative;
+    }
+
+    h1 {
+      color: #c29200;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+    }
+
+    #coin {
+      width: 180px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    #coin.clicked {
+      animation: bounce 0.3s ease;
+    }
+
+    #count {
+      font-size: 2rem;
+      color: #444;
+      margin-top: 20px;
+    }
+
+    @keyframes bounce {
+      0% { transform: scale(1) rotate(0deg); }
+      30% { transform: scale(1.2) translateY(-20px) rotate(20deg); }
+      60% { transform: scale(1.1) translateY(10px) rotate(-20deg); }
+      100% { transform: scale(1) rotate(0deg); }
+    }
+
+    #footer {
+      position: fixed;
+      bottom: 10px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      color: #666;
+      font-size: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>بزن روی سکه 😎</h1>
+  <img id="coin" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Gold_coin_icon.png/240px-Gold_coin_icon.png" onclick="addCoin()">
+  <div id="count">تعداد سکه: 0</div>
+
+  <div id="footer">
+    ساخته شده توسط <strong>Rob Lucci</strong> 💼🐆
+  </div>
+
+  <script>
+    let coins = localStorage.getItem("coins") || 0;
+    document.getElementById("count").innerText = "تعداد سکه: " + coins;
+
+    function addCoin() {
+      coins++;
+      document.getElementById("count").innerText = "تعداد سکه: " + coins;
+      localStorage.setItem("coins", coins);
+
+      let coin = document.getElementById("coin");
+      coin.classList.add("clicked");
+
+      setTimeout(() => {
+        coin.classList.remove("clicked");
+      }, 300);
+    }
+  </script>
+
+</body>
+    </html>
