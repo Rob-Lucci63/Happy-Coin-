@@ -1,284 +1,127 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8" />
-  <title>Happy Coin - بازی سکه و لول</title>
-  <style>
-    body {
-      background: #fffbe6;
-      font-family: Tahoma, sans-serif;
-      text-align: center;
-      padding: 40px 20px;
-      transition: background-color 0.5s, color 0.5s;
-      color: #333;
-    }
-    body.dark {
-      background-color: #121212;
-      color: #eee;
-    }
-    #loginDiv, #gameDiv {
-      max-width: 400px;
-      margin: auto;
-    }
-    input[type="text"] {
-      font-size: 1.1rem;
-      padding: 10px;
-      width: 90%;
-      margin-bottom: 15px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-    button {
-      font-size: 1.2rem;
-      padding: 10px 25px;
-      background-color: #c29200;
-      border: none;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-      margin: 5px;
-    }
-    button:hover {
-      background-color: #a17300;
-    }
-    #coin {
-      width: 45vw;
-      max-width: 200px;
-      cursor: pointer;
-      user-select: none;
-      transition: transform 0.2s ease;
-    }
-    #coin.clicked {
-      animation: bounce 0.3s ease;
-    }
-    @keyframes bounce {
-      0% { transform: scale(1) rotate(0deg); }
-      30% { transform: scale(1.2) translateY(-20px) rotate(20deg); }
-      60% { transform: scale(1.1) translateY(10px) rotate(-20deg); }
-      100% { transform: scale(1) rotate(0deg); }
-    }
-    #count, #level, #blackCoins {
-      font-size: 1.6rem;
-      color: #444;
-      margin-top: 15px;
-      font-weight: bold;
-    }
-    #leaderboard {
-      margin-top: 30px;
-      text-align: right;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 10px;
-      font-size: 0.9rem;
-    }
-    th, td {
-      border: 1px solid #c29200;
-      padding: 8px;
-    }
-    th {
-      background-color: #f3d87f;
-    }
-    #shop {
-      margin-top: 30px;
-      border-top: 2px solid #c29200;
-      padding-top: 20px;
-    }
-    #footer {
-      margin-top: 40px;
-      font-size: 0.9rem;
-      color: #666;
-    }
-    #version {
-      font-size: 1.1rem;
-      margin-top: 30px;
-      color: #888;
-    }
-  </style>
+<meta charset="UTF-8" />
+<title>Happy Coin - سیستم ساده سکه سیاه</title>
+<style>
+  body {
+    background: #fffbe6;
+    font-family: Tahoma, sans-serif;
+    text-align: center;
+    padding: 40px 20px;
+  }
+  body.dark {
+    background-color: #121212;
+    color: #eee;
+  }
+  #coin {
+    width: 150px;
+    cursor: pointer;
+    user-select: none;
+    transition: transform 0.2s ease;
+  }
+  #coin.clicked {
+    animation: bounce 0.3s ease;
+  }
+  @keyframes bounce {
+    0% { transform: scale(1) rotate(0deg); }
+    30% { transform: scale(1.2) translateY(-20px) rotate(20deg); }
+    60% { transform: scale(1.1) translateY(10px) rotate(-20deg); }
+    100% { transform: scale(1) rotate(0deg); }
+  }
+  #info {
+    font-size: 1.5rem;
+    margin-top: 20px;
+    color: #444;
+  }
+  #shop {
+    margin-top: 30px;
+  }
+  button {
+    font-size: 1.1rem;
+    padding: 10px 20px;
+    background-color: #c29200;
+    border: none;
+    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    margin: 5px;
+  }
+  button:hover {
+    background-color: #a17300;
+  }
+</style>
 </head>
 <body>
 
-  <div id="loginDiv">
-    <h2>خوش اومدی! اسم‌تو وارد کن 👇</h2>
-    <input type="text" id="username" placeholder="اسم کاربر" />
-    <br />
-    <button onclick="login()">ورود</button>
-  </div>
+<h2>Happy Coin - سیستم ساده سکه سیاه</h2>
+<img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" alt="سکه" onclick="addCoin()" />
+<div id="info"></div>
 
-  <div id="gameDiv" style="display:none;">
-    <h2>سلام <span id="displayName"></span>! بزن روی سکه 😎</h2>
-    <img
-      id="coin"
-      src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png"
-      alt="سکه"
-      onclick="addCoin()"
-    />
-    <div id="count">تعداد سکه: 0</div>
-    <div id="level">سطح (Level): 1</div>
-    <div id="blackCoins">سکه سیاه: 0</div>
+<div id="shop">
+  <h3>🛒 فروشگاه</h3>
+  <p>تم دارک مود: ۳۴ سکه سیاه</p>
+  <button onclick="buyDarkMode()">خرید دارک مود</button>
+  <button onclick="toggleDarkMode()">تغییر تم</button>
+</div>
 
-    <div id="leaderboard">
-      <h3>🏆 جدول رتبه‌بندی</h3>
-      <table>
-        <thead>
-          <tr><th>رتبه</th><th>اسم</th><th>سکه</th></tr>
-        </thead>
-        <tbody id="leaderboardBody"></tbody>
-      </table>
-    </div>
+<script>
+  let data = JSON.parse(localStorage.getItem("simpleCoinData") || '{"clicks":0,"blackCoins":0,"darkModeBought":false,"darkModeActive":false}');
 
-    <div id="shop">
-      <h3>🛒 فروشگاه</h3>
-      <p>تم دارک مود: ۲۰ سکه سیاه</p>
-      <button onclick="buyDarkMode()">خرید دارک مود</button>
-      <button onclick="toggleDarkMode()">تغییر تم</button>
-    </div>
+  function updateDisplay() {
+    document.getElementById("info").innerText = 
+      `کلیک: ${data.clicks} | سکه سیاه: ${data.blackCoins}`;
+  }
 
-    <div id="footer">
-      ساخته‌شده توسط <strong>Rob Lucci</strong> 💼🐆
-      <div id="version">نسخه سایت: 0.0.2</div>
-    </div>
-  </div>
-
-  <script>
-    const levelThresholds = [0, 450, 900, 1700, 2800, 3700, 5000];
-    let currentUser = null;
-    let usersData = JSON.parse(localStorage.getItem("happyCoinUsers") || "{}");
-
-    function login() {
-      const name = document.getElementById("username").value.trim();
-      if(name.length < 2) {
-        alert("اسم باید حداقل ۲ حرف داشته باشه");
-        return;
-      }
-      if (!usersData[name]) {
-        usersData[name] = {
-          coins: 0,
-          blackCoins: 0,
-          clicks: 0,
-          level: 1,
-          darkModeBought: false,
-          darkModeActive: false,
-          token: '_' + Math.random().toString(36).substr(2, 9)
-        };
-      }
-      currentUser = name;
-      saveData();
-      updateUI();
-      showGame();
+  function addCoin() {
+    data.clicks++;
+    if (data.clicks % 15 === 0) {
+      data.blackCoins++;
+      alert("تبریک! 1 سکه سیاه گرفتی!");
     }
+    localStorage.setItem("simpleCoinData", JSON.stringify(data));
+    updateDisplay();
 
-    function saveData() {
-      localStorage.setItem("happyCoinUsers", JSON.stringify(usersData));
-    }
+    let coin = document.getElementById("coin");
+    coin.classList.add("clicked");
+    setTimeout(() => coin.classList.remove("clicked"), 300);
+  }
 
-    function updateUI() {
-      document.getElementById("displayName").innerText = currentUser;
-      updateCoinCount();
-      updateLevel();
-      updateBlackCoins();
-      renderLeaderboard();
+  function buyDarkMode() {
+    if (data.blackCoins >= 34) {
+      data.blackCoins -= 34;
+      data.darkModeBought = true;
+      data.darkModeActive = true;
+      localStorage.setItem("simpleCoinData", JSON.stringify(data));
+      updateDisplay();
       updateDarkMode();
-      showShop();
+      alert("تم دارک مود خریداری و فعال شد!");
+    } else {
+      alert("سکه سیاه کافی نیست!");
     }
+  }
 
-    function updateCoinCount() {
-      document.getElementById("count").innerText = "تعداد سکه: " + usersData[currentUser].coins;
+  function toggleDarkMode() {
+    if (data.darkModeBought) {
+      data.darkModeActive = !data.darkModeActive;
+      localStorage.setItem("simpleCoinData", JSON.stringify(data));
+      updateDarkMode();
+    } else {
+      alert("ابتدا باید تم دارک مود را بخری!");
     }
+  }
 
-    function updateLevel() {
-      let user = usersData[currentUser];
-      let newLevel = 1;
-
-      for(let i = levelThresholds.length - 1; i >= 0; i--) {
-        if(user.clicks >= levelThresholds[i]) {
-          newLevel = i + 1;
-          break;
-        }
-      }
-
-      if (newLevel > user.level) {
-        user.blackCoins += (newLevel - user.level) * 10;
-        user.level = newLevel;
-      }
-
-      document.getElementById("level").innerText = "سطح (Level): " + user.level;
+  function updateDarkMode() {
+    if (data.darkModeActive) {
+      document.body.classList.add("dark");
+    } else {
+      document.body.classList.remove("dark");
     }
+  }
 
-    function updateBlackCoins() {
-      document.getElementById("blackCoins").innerText = "سکه سیاه: " + usersData[currentUser].blackCoins;
-    }
-
-    function addCoin() {
-      let user = usersData[currentUser];
-      user.coins++;
-      user.clicks++;
-
-      saveData();
-      updateUI();
-
-      let coin = document.getElementById("coin");
-      coin.classList.add("clicked");
-      setTimeout(() => coin.classList.remove("clicked"), 300);
-    }
-
-    function renderLeaderboard() {
-      const tbody = document.getElementById("leaderboardBody");
-      tbody.innerHTML = "";
-      let sorted = Object.entries(usersData)
-        .sort((a, b) => b[1].coins - a[1].coins);
-      sorted.forEach(([name, data], index) => {
-        let tr = document.createElement("tr");
-        tr.innerHTML = `<td>${index+1}</td><td>${name}</td><td>${data.coins}</td>`;
-        tbody.appendChild(tr);
-      });
-    }
-
-    function buyDarkMode() {
-      let user = usersData[currentUser];
-      if(user.blackCoins >= 20) {
-        user.blackCoins -= 20;
-        user.darkModeBought = true;
-        user.darkModeActive = true;
-        saveData();
-        updateUI();
-        updateDarkMode();
-        alert("تم دارک مود با موفقیت خریداری و فعال شد!");
-      } else {
-        alert("سکه سیاه کافی نیست!");
-      }
-    }
-
-    function toggleDarkMode() {
-      let user = usersData[currentUser];
-      if(user.darkModeBought) {
-        user.darkModeActive = !user.darkModeActive;
-        saveData();
-        updateDarkMode();
-      } else {
-        alert("ابتدا باید تم دارک مود را بخری!");
-      }
-    }
-
-    function updateDarkMode() {
-      let user = usersData[currentUser];
-      if(user.darkModeActive) {
-        document.body.classList.add("dark");
-      } else {
-        document.body.classList.remove("dark");
-      }
-    }
-
-    function showShop() {
-      document.getElementById("shop").style.display = "block";
-    }
-
-    function showGame() {
-      document.getElementById("loginDiv").style.display = "none";
-      document.getElementById("gameDiv").style.display = "block";
-    }
-  </script>
+  updateDisplay();
+  updateDarkMode();
+</script>
 
 </body>
 </html>
