@@ -149,7 +149,16 @@
   <script>
     let currentUser = null;
     let usersData = JSON.parse(localStorage.getItem("happyCoinUsers") || "{}");
-    let usedCheatCodes = JSON.parse(localStorage.getItem("usedCheatCodes") || "{}");
+    let usedCheatCodes = JSON.parse(localStorage.getItem("usedCheatCodes") || "[]");
+
+    // موقع بارگذاری صفحه چک می‌کنیم اسم ذخیره شده باشه
+    window.onload = () => {
+      const saved = localStorage.getItem("happyCoinCurrentUser");
+      if (saved && usersData[saved]) {
+        currentUser = saved;
+        loginFinish();
+      }
+    };
 
     function login() {
       const name = document.getElementById("username").value.trim();
@@ -161,19 +170,26 @@
         usersData[name] = {
           coins: 0,
           blackCoins: 0,
-          token: '_' + Math.random().toString(36).substr(2, 9),
+          token: '_' + Math.random().toString(36).substr(2,9),
           darkModeBought: false,
           darkModeActive: false
         };
       }
       currentUser = name;
+      localStorage.setItem("happyCoinCurrentUser", name);
       saveData();
+      loginFinish();
+    }
+
+    function loginFinish() {
+      document.getElementById("loginDiv").style.display = "none";
+      document.getElementById("gameDiv").style.display = "block";
       updateUI();
-      showGame();
     }
 
     function saveData() {
       localStorage.setItem("happyCoinUsers", JSON.stringify(usersData));
+      localStorage.setItem("usedCheatCodes", JSON.stringify(usedCheatCodes));
     }
 
     function updateUI() {
@@ -194,12 +210,12 @@
     }
 
     function addCoin() {
-      usersData[currentUser].coins++;
+      const user = usersData[currentUser];
+      user.coins++;
+      if (user.coins % 15 === 0) user.blackCoins++;
       saveData();
-      updateCoinCount();
-      renderLeaderboard();
-
-      let coin = document.getElementById("coin");
+      updateUI();
+      const coin = document.getElementById("coin");
       coin.classList.add("clicked");
       setTimeout(() => coin.classList.remove("clicked"), 300);
     }
@@ -207,69 +223,66 @@
     function renderLeaderboard() {
       const tbody = document.getElementById("leaderboardBody");
       tbody.innerHTML = "";
-      let sorted = Object.entries(usersData)
-        .sort((a, b) => b[1].coins - a[1].coins);
-      sorted.forEach(([name, data], index) => {
-        let tr = document.createElement("tr");
-        tr.innerHTML = `<td>${index + 1}</td><td>${name}</td><td>${data.coins}</td>`;
-        tbody.appendChild(tr);
-      });
+      Object.entries(usersData)
+        .sort((a,b)=> b[1].coins - a[1].coins)
+        .forEach(([name,data],i)=>{
+          const tr = document.createElement("tr");
+          tr.innerHTML = `<td>${i+1}</td><td>${name}</td><td>${data.coins}</td>`;
+          tbody.appendChild(tr);
+        });
     }
 
-    // فروشگاه و دارک مود
     function buyDarkMode() {
-      let user = usersData[currentUser];
+      const user = usersData[currentUser];
       if (user.blackCoins >= 34) {
         user.blackCoins -= 34;
-        user.darkModeBought = true;
-        user.darkModeActive = true;
-        saveData();
-        updateUI();
-        alert("تم دارک مود با موفقیت خریداری و فعال شد!");
-      } else {
-        alert("سکه سیاه کافی نیست!");
-      }
+        user.darkModeBought = user.darkModeActive = true;
+        saveData(); updateUI();
+      } else alert("سکه سیاه کافی نیست!");
     }
 
     function toggleDarkMode() {
-      let user = usersData[currentUser];
+      const user = usersData[currentUser];
       if (user.darkModeBought) {
         user.darkModeActive = !user.darkModeActive;
-        saveData();
-        updateUI();
-      } else {
-        alert("ابتدا باید تم دارک مود را بخری!");
-      }
+        saveData(); updateUI();
+      } else alert("ابتدا باید دارک مود را بخری!");
     }
 
     function updateDarkMode() {
-      if (usersData[currentUser].darkModeActive) {
-        document.body.classList.add("dark");
-      } else {
-        document.body.classList.remove("dark");
-      }
+      document.body.classList.toggle("dark", usersData[currentUser].darkModeActive);
     }
 
     function showShop() {
       document.getElementById("shop").style.display = "block";
     }
 
-    function showGame() {
-      document.getElementById("loginDiv").style.display = "none";
-      document.getElementById("gameDiv").style.display = "block";
-    }
-
-    // کد تقلب
+    // ----- کد تقلب -----
     function toggleCheatInput() {
-      const cheatDiv = document.getElementById("cheatInputDiv");
-      cheatDiv.style.display = cheatDiv.style.display === "none" ? "block" : "none";
+      const d = document.getElementById("cheatInputDiv");
+      d.style.display = d.style.display==="none"?"block":"none";
     }
 
     function applyCheat() {
       const code = document.getElementById("cheatCode").value.trim().toLowerCase();
-      if (!code) {
-        alert("لطفا کد را وارد کن");
-        return;
+      if (!code) { alert("لطفاً کد را وارد کن"); return;}
+      if (usedCheatCodes.includes(code)) { alert("این کد قبلاً استفاده شده"); return;}
+
+      const user = usersData[currentUser];
+      if (code==="fff") {
+        user.coins += 600;
+      } else if (code==="ff") {
+        user.blackCoins += 25;
+      } else {
+        alert("کد اشتباه است!"); return;
       }
-      if (usedCheatCodes[code]) {
-        alert("این کد قبلا استفاده شده");
+
+      usedCheatCodes.push(code);
+      saveData(); updateUI();
+      document.getElementById("cheatCode").value="";
+      alert("کد با موفقیت اعمال شد!");
+    }
+  </script>
+
+</body>
+  </html>
