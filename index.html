@@ -3,32 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Happy Coin - نسخه 0.0.4</title>
+  <title>Happy Coin - نسخه 0.0.5</title>
   <style>
-    body { background: #fffbe6; font-family: Tahoma, sans-serif; text-align: center; padding: 20px; color: #333; transition:background 0.5s,color 0.5s }
-    body.dark { background: #121212; color: #eee }
-    #loginDiv,#gameDiv { max-width:480px;margin:auto }
-    input,button { font-size:1rem;padding:8px; margin:5px }
-    button { background:#c29200;color:#fff;border:none;border-radius:5px;cursor:pointer;transition:background .3s }
-    button:hover:not(:disabled){background:#a17300}
-    button:disabled{background:#999;cursor:default}
-    #coin { width:150px;cursor:pointer;transition:transform .2s }
-    #coin.clicked{animation:bounce .3s}
+    body { background: #fffbe6; font-family: Tahoma, sans-serif; text-align: center; padding: 20px; transition: background 0.5s, color 0.5s; }
+    body.dark { background: #121212; color: #eee; }
+    #loginDiv,#gameDiv { max-width:480px; margin:auto; }
+    input,button { font-size:1rem; padding:8px; margin:5px; }
+    button { background:#c29200;color:#fff;border:none;border-radius:5px;cursor:pointer; }
+    button:hover:not(:disabled){background:#a17300;}
+    button:disabled{background:#999;cursor:default;}
+    #coin { width:150px;cursor:pointer;transition:transform .2s; }
+    #coin.clicked{animation:bounce .3s;}
     @keyframes bounce{0%,100%{transform:scale(1)}30%{transform:scale(1.2)}60%{transform:scale(1.1)}}
-    #count,#blackCoins{font-weight:bold;font-size:1.4rem;margin-top:15px}
-    table{width:100%;border-collapse:collapse;margin-top:20px}
-    th,td{border:1px solid #c29200;padding:6px}
-    th{background:#f3d87f}
-    #shop,#dailyChallenge{margin-top:30px;border-top:2px solid #c29200;padding-top:15px}
-    .floor-btn{display:block;width:100%;text-align:left;padding:8px;margin:5px 0;border:none;border-radius:5px;background:#c29200;color:#fff;cursor:pointer;transition:background .3s}
-    .floor-btn:hover:not(:disabled){background:#a17300}
-    .floor-btn:disabled{background:#999;cursor:default}
-    .mini-game{margin-top:20px;border:1px solid #c29200;padding:15px;border-radius:8px;background:#fff8d6;min-height:120px}
-    .hidden{display:none}
-    #catchAppleGame{position:relative;width:300px;height:300px;margin:20px auto;background:#a0d8f0;border-radius:12px;overflow:hidden}
-    #apple{position:absolute;width:30px;height:30px;background:red;border-radius:50%;top:0;cursor:pointer}
-    #basket{position:absolute;width:60px;height:30px;background:brown;border-radius:15px 15px 0 0;bottom:10px;cursor:pointer}
-    #footer{margin-top:40px;font-size:.9rem;color:#666}
+    #count,#blackCoins{font-weight:bold;font-size:1.4rem;margin-top:15px;}
+    table{width:100%;border-collapse:collapse;margin-top:20px;}
+    th,td{border:1px solid #c29200;padding:6px;}
+    th{background:#f3d87f;}
+    #shop,#dailyChallenge{margin-top:30px;border-top:2px solid #c29200;padding-top:15px;}
+    .floor-btn{display:block;width:100%;text-align:left;padding:8px;margin:5px 0;border:none;border-radius:5px;background:#c29200;color:#fff;}
+    .floor-btn:hover:not(:disabled){background:#a17300;}
+    .floor-btn:disabled{background:#999;}
+    .mini-game{margin-top:20px;border:1px solid #c29200;padding:15px;border-radius:8px;background:#fff8d6;min-height:140px;}
+    #catchAppleGame{position:relative;width:300px;height:300px;margin:20px auto;background:#a0d8f0;border-radius:12px;overflow:hidden;}
+    #apple{position:absolute;width:30px;height:30px;background:red;border-radius:50%;top:0;}
+    #basket{position:absolute;width:60px;height:30px;background:brown;border-radius:15px 15px 0 0;bottom:10px;cursor:pointer;}
+    #footer{margin-top:40px;font-size:.9rem;color:#666;}
   </style>
 </head>
 <body>
@@ -41,7 +40,7 @@
 
 <div id="gameDiv" style="display:none">
   <h2>سلام <span id="displayName"></span>!</h2>
-  <img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" onclick="addCoin()" alt="سکه" />
+  <img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" onclick="addCoin()" />
   <div id="count">تعداد سکه: 0</div>
   <div id="blackCoins">سکه سیاه: 0</div>
 
@@ -51,15 +50,16 @@
     <button id="btnBuyDark" onclick="buyDark()">خرید</button>
     <button id="btnToggleDark" onclick="toggleDark()">تغییر تم</button>
     <hr>
-    <p>جمع خودکار سکه: ۶۵ سکه سیاه</p>
-    <button id="btnBuyAuto" onclick="buyAuto()">خرید</button>
-    <div id="autoStatus" style="margin-top:10px;color:green;font-weight:bold"></div>
+    <p>نگه داشتن سکه: ۶۵ سکه سیاه</p>
+    <button id="btnBuyHold" onclick="buyHold()">خرید</button>
+    <button id="btnToggleHold" onclick="toggleHold()">فعال/غیرفعال</button>
+    <div id="holdStatus" style="margin-top:10px;color:green;font-weight:bold;"></div>
   </div>
 
   <div id="dailyChallenge">
     <h3>🏠 چالش روزانه - خرید طبقات</h3>
     <div id="floorsContainer"></div>
-    <div id="miniGameContainer" class="mini-game">هیچ مینی‌گیمی فعال نیست</div>
+    <div id="miniGameContainer" class="mini-game">مینی‌گیم فعالی نیست</div>
   </div>
 
   <div id="cheatDiv">
@@ -70,226 +70,134 @@
     </div>
   </div>
 
-  <div id="footer">نسخه 0.0.4 | ساخته توسط Rob Lucci</div>
+  <div id="footer">نسخه 0.0.5 | Rob Lucci</div>
 </div>
 
 <script>
-let currentUser, data=JSON.parse(localStorage.getItem("happyCoinUsers")||"{}"), cheats=JSON.parse(localStorage.getItem("usedCheatCodes")||"[]");
-const maxFloor=5, floorCost=1000;
-let autoInterval, autoTimeout, inCooldown=false;
+let user, data=JSON.parse(localStorage.getItem("happyCoinUsers")||"{}"), cheats=JSON.parse(localStorage.getItem("usedCheatCodes")||"[]");
+const maxFloor=5, costFloor=1000;
+let holdInt, holdCool=false;
 
-// init
-function init(u){
-  if(!data[u]) data[u]={coins:0,black:0,floors:0,dark:false,auto:false,token:"_"+Math.random().toString(36).slice(2)};
-  save();
-}
-
-// save
-function save(){
-  localStorage.setItem("happyCoinUsers",JSON.stringify(data));
-  localStorage.setItem("usedCheatCodes",JSON.stringify(cheats));
-}
-
-// login
-function login(){
-  let u=document.getElementById("username").value.trim();
-  if(u.length<2)return alert("اسم کوتاهه");
-  currentUser=u; init(u); localStorage.setItem("happyCoinCurrentUser",u); start();
-}
+// init/save
+function save(){localStorage.setItem("happyCoinUsers",JSON.stringify(data));localStorage.setItem("usedCheatCodes",JSON.stringify(cheats));}
+function init(u){if(!data[u])data[u]={coins:0,black:0,floors:0,dark:false,hold:false,token:"_"+Math.random().toString(36).slice(2)};save();}
 
 // start
-function start(){
-  document.getElementById("loginDiv").style.display="none";
-  document.getElementById("gameDiv").style.display="block";
-  renderAll();
-  if(data[currentUser].auto) startAuto();
+function login(){
+  const n=document.getElementById("username").value.trim();
+  if(n.length<2)return alert("اسم کوتاهه");
+  user=n;init(n);localStorage.setItem("happyCoinCurrentUser",n);renderAll();document.getElementById("loginDiv").style.display="none";document.getElementById("gameDiv").style.display="block";
 }
+window.onload=()=>{
+  const u=localStorage.getItem("happyCoinCurrentUser");
+  if(u){user=u;init(u);document.getElementById("loginDiv").style.display="none";document.getElementById("gameDiv").style.display="block";renderAll();}
+};
 
-// render everything
+// render
 function renderAll(){
-  let u=data[currentUser];
-  document.getElementById("displayName").innerText=currentUser;
+  const u=data[user];
+  document.getElementById("displayName").innerText=user;
   document.getElementById("count").innerText="تعداد سکه: "+u.coins;
   document.getElementById("blackCoins").innerText="سکه سیاه: "+u.black;
   document.getElementById("btnBuyDark").disabled=!(u.black>=34&&!u.dark);
   document.getElementById("btnToggleDark").disabled=!u.dark;
-  document.getElementById("btnBuyAuto").disabled=!(u.black>=65&&!u.auto&&!inCooldown);
-  document.getElementById("autoStatus").innerText=u.auto?"جمع خودکار فعال":"";
-  renderLeaderboard(); renderFloors();
+  document.getElementById("btnBuyHold").disabled=!(u.black>=65&&!u.hold&&!holdCool);
+  document.getElementById("btnToggleHold").disabled=!u.hold;
+  document.getElementById("holdStatus").innerText=u.hold?"نگه داشتن فعال":"";
+  renderLeaderboard();renderFloors();
+  document.body.classList.toggle("dark",u.dark);
+}
+function renderLeaderboard(){
+  let rows=Object.entries(data).sort((a,b)=>b[1].coins-a[1].coins)
+    .map((e,i)=>`<tr><td>${i+1}</td><td>${e[0]}</td><td>${e[1].coins}</td></tr>`).join("");
+  document.getElementById("leaderboardBody").innerHTML=rows;
+}
+function renderFloors(){
+  const u=data[user];
+  let html="";
+  for(let i=1;i<=maxFloor;i++){
+    html+=`<button class="floor-btn" onclick="buyFloor(${i})" ${i<=u.floors?"disabled":""}>${i<=u.floors?"✅":"🪙"} طبقه ${i} - ${costFloor*i}</button>`;
+  }
+  document.getElementById("floorsContainer").innerHTML=html;
 }
 
-// click coin
+// actions
 function addCoin(){
-  let u=data[currentUser]; u.coins++; if(u.coins%15===0)u.black++;
-  save(); renderAll();
-  let c=document.getElementById("coin"); c.classList.add("clicked");
+  let u=data[user];u.coins++;if(u.coins%15===0)u.black++;save();renderAll();
+  const c=document.getElementById("coin");c.classList.add("clicked");
   setTimeout(()=>c.classList.remove("clicked"),300);
 }
+function buyDark(){let u=data[user];u.black-=34;u.dark=true;save();renderAll();}
+function toggleDark(){let u=data[user];u.dark=!u.dark;save();renderAll();}
 
-// leaderboard
-function renderLeaderboard(){
-  let t="", arr=Object.entries(data).sort((a,b)=>b[1].coins-a[1].coins);
-  arr.forEach((e,i)=> t+=`<tr><td>${i+1}</td><td>${e[0]}</td><td>${e[1].coins}</td></tr>`);
-  document.getElementById("leaderboardBody").innerHTML=t;
+function buyHold(){
+  let u=data[user];u.black-=65;u.hold=true;save();renderAll();
+  startHold();
 }
-
-// dark mode
-function buyDark(){let u=data[currentUser]; u.black>=34&&(u.black-=34, u.dark=true, save(), renderAll());}
-function toggleDark(){let u=data[currentUser]; if(u.dark){u.dark=!u.dark; save(); renderAll();}}
-  
-// auto collect
-function buyAuto(){
-  let u=data[currentUser];
-  if(u.black>=65 && !u.auto && !inCooldown){
-    u.black-=65; u.auto=true; save(); renderAll(); startAuto();
-  }
+function toggleHold(){
+  data[user].hold?stopHold():startHold();
 }
-function startAuto(){
-  autoInterval=setInterval(addCoin,500);
-  autoTimeout=setTimeout(()=>{
-    clearInterval(autoInterval);
-    inCooldown=true; renderAll();
-    setTimeout(()=>{inCooldown=false; renderAll()},30000);
+function startHold(){
+  if(holdInt)clearInterval(holdInt);
+  data[user].hold=true; holdInt=setInterval(addCoin,500);save();renderAll();
+  setTimeout(()=>{
+    stopHold();holdCool=true;save();renderAll();
+    setTimeout(()=>{holdCool=false;renderAll();},30000);
   },50000);
 }
+function stopHold(){clearInterval(holdInt);data[user].hold=false;save();renderAll();}
 
-// floors
-function renderFloors(){
-  let c="",u=data[currentUser];
-  for(let i=1;i<=maxFloor;i++){
-    let cost=floorCost*i, bought=i<=u.floors;
-    c+=`<button class="floor-btn" onclick="buyFloor(${i})" ${bought?"disabled":""}>
-      ${bought?"✅":"🪙"} طبقه ${i} - ${cost}
-    </button>`;
-  }
-  document.getElementById("floorsContainer").innerHTML=c;
-}
-
-// buy floor
 function buyFloor(i){
-  let u=data[currentUser],cost=floorCost*i;
-  if(u.coins<cost) return alert("سکه کافی نیست");
-  u.coins-=cost; u.floors=i; save(); renderAll(); openMini(i);
+  let u=data[user],cost=costFloor*i;
+  if(u.coins<cost)return alert("سکه کافی نیست");
+  u.coins-=cost;u.floors=i;save();renderAll();openMini(i);
 }
 
-// open mini-game
 function openMini(f){
-  const c=document.getElementById("miniGameContainer");
-  c.innerHTML=""; let u=data[currentUser];
-  if(f===1){
-    c.innerHTML=`<h4>حدس عدد</h4>
-      <input id="g1" type="number" min="1" max="10" />
-      <button onclick="chk1()">بزن</button>
-      <div id="r1"></div>`;
-  }
-  if(f===2){
-    c.innerHTML=`<h4>سرعت کلیک</h4>
-      <p id="msg2">روی دکمه کلیک کن</p>
-      <button onclick="clk2()">کلیک</button>
-      <p id="t2"></p>`;
-    init2();
-  }
-  if(f===3){
-    c.innerHTML=`<h4>حافظه عددی</h4>
-      <div id="s3"></div>
-      <button onclick="str3()">شروع</button>
-      <input id="a3" />
-      <button onclick="chk3()">تست</button>
-      <div id="r3"></div>`;
-  }
-  if(f===4){
-    c.innerHTML=`<h4>پرش توپ</h4>
-      <button onclick="jmp4()">پرش!</button>
-      <div id="r4"></div>`;
-  }
-  if(f===5){
-    c.innerHTML=`<h4>گرفتن سیب</h4>
-      <div id="catchAppleGame">
-        <div id="apple"></div>
-        <div id="basket"></div>
-      </div>
-      <div id="r5"></div>`;
-    init5();
-  }
+  const c=document.getElementById("miniGameContainer");c.innerHTML="";
+  if(f===1)c.innerHTML=`<h4>حدس عدد</h4><input id="g1"type="number"min="1"max="10"/><button onclick="chk1()">بزن</button><div id="r1"></div>`;
+  if(f===2){c.innerHTML=`<h4>سرعت کلیک</h4><p id="msg2">کلیک کن</p><button onclick="clk2()">کلیک</button><p id="t2"></p>`;init2();}
+  if(f===3)c.innerHTML=`<h4>حافظه</h4><div id="s3"></div><button onclick="str3()">شروع</button><input id="a3"/><button onclick="chk3()">تست</button><div id="r3"></div>`;
+  if(f===4)c.innerHTML=`<h4>پرش توپ</h4><button onclick="jmp4()">پرش!</button><div id="r4"></div>`;
+  if(f===5){c.innerHTML=`<h4>گرفتن سیب</h4><div id="catchAppleGame"><div id="apple"></div><div id="basket"></div></div><div id="r5"></div>`;init5();}
 }
 
 // mini1
-function chk1(){
-  let g=+document.getElementById("g1").value, a=Math.floor(Math.random()*10)+1;
-  const r=document.getElementById("r1");
-  if(g===a){r.innerText="درست! +100"; data[currentUser].coins+=100; save(); renderAll();}
-  else r.innerText=`اشتباه! جواب ${a}`;
+function chk1(){const g=+document.getElementById("g1").value,a=Math.floor(Math.random()*10)+1,r=document.getElementById("r1");
+  if(g===a){data[user].coins+=100;save();renderAll();r.innerText="درست +100";}else r.innerText="جواب "+a;
 }
 
 // mini2
 let c2,t2,iv2;
 function init2(){c2=0;t2=5;clearInterval(iv2);document.getElementById("t2").innerText="";}
-function clk2(){
-  if(t2===5) iv2=setInterval(()=>{
-    t2--;document.getElementById("t2").innerText=`زمان ${t2}`;
-    if(t2===0){clearInterval(iv2);end2();}
-  },1000);
-  c2++;
-}
-function end2(){
-  if(c2>=5){alert("200 سکه"); data[currentUser].coins+=200; save(); renderAll()}
-  else alert("موفق نشدی");
-}
+function clk2(){if(t2===5)iv2=setInterval(()=>{t2--;document.getElementById("t2").innerText="زمان "+t2; if(!t2){clearInterval(iv2);end2();}},1000);c2++;}
+function end2(){if(c2>=5){data[user].coins+=200;save();renderAll();alert("200 سکه");}else alert("نشدی");}
 
 // mini3
 let seq3;
-function str3(){
-  seq3=[];for(let i=0;i<3;i++)seq3.push(Math.ceil(Math.random()*9));
-  document.getElementById("s3").innerText=seq3.join("-");
-  setTimeout(()=>document.getElementById("s3").innerText="",3000);
-}
-function chk3(){
-  let a=document.getElementById("a3").value.split("-").map(Number);
-  if(JSON.stringify(a)===JSON.stringify(seq3)){alert("150 سکه"); data[currentUser].coins+=150; save(); renderAll();}
-  else alert("اشتباه");
+function str3(){seq3=[];for(let i=0;i<3;i++)seq3.push(Math.ceil(Math.random()*9));document.getElementById("s3").innerText=seq3.join("-");setTimeout(()=>document.getElementById("s3").innerText="",3000);}
+function chk3(){const a=document.getElementById("a3").value.split("-").map(Number);
+  if(JSON.stringify(a)===JSON.stringify(seq3)){data[user].coins+=150;save();renderAll();alert("150 سکه");}else alert("اشتباه");
 }
 
 // mini4
-function jmp4(){alert("120 سکه"); data[currentUser].coins+=120; save(); renderAll()}
+function jmp4(){data[user].coins+=120;save();renderAll();alert("120 سکه");}
 
 // mini5
-function init5(){
-  const app=document.getElementById("apple"), box=document.getElementById("basket");
-  let x=120,score=0;
-  box.onmousemove=e=>{
-    const r=box.parentElement.getBoundingClientRect();
-    x=e.clientX-r.left-30; if(x<0)x=0; if(x>240)x=240; box.style.left=x+"px";
-  };
-  function drop(){
-    let y=0,left=Math.random()*270; app.style.left=left+"px";
-    const iv=setInterval(()=>{
-      y+=5;app.style.top=y+"px";
-      if(y>270){
-        if(Math.abs(x-left)<30){score++; document.getElementById("r5").innerText="سکه:"+score;}
-        clearInterval(iv); setTimeout(drop,1000);
-      }
-    },50);
-  }
+function init5(){const app=document.getElementById("apple"),box=document.getElementById("basket");let x=120,score=0;
+  box.onmousemove=e=>{const r=box.parentElement.getBoundingClientRect();x=e.clientX-r.left-30;x=Math.max(0,Math.min(240,x));box.style.left=x+"px";};
+  function drop(){let y=0,left=Math.random()*270;app.style.left=left+"px";const id=setInterval(()=>{y+=5;app.style.top=y+"px";
+    if(y>270){clearInterval(id);if(Math.abs(x-left)<30){score++;document.getElementById("r5").innerText="سکه "+score;}setTimeout(drop,1000);} },50);}
   drop();
 }
 
 // cheat
-function toggleCheat(){document.getElementById("cheatBox").classList.toggle("hidden")}
-function applyCheat(){
-  let c=document.getElementById("cheatCode").value.trim().toLowerCase();
-  if(!c)return alert("کد خالی");
-  if(cheats.includes(currentUser+"_"+c))return alert("استفاده شده");
-  if(c==="fff") data[currentUser].coins+=600;
-  else if(c==="ff") data[currentUser].black+=25;
-  else return alert("کد اشتباه");
-  cheats.push(currentUser+"_"+c); save(); renderAll(); alert("اعمال شد");
+function toggleCheat(){document.getElementById("cheatBox").classList.toggle("hidden");}
+function applyCheat(){const c=document.getElementById("cheatCode").value.trim().toLowerCase();
+  if(!c)return alert("کد خالی");if(cheats.includes(user+"_"+c))return alert("استفاده شده");
+  if(c==="fff")data[user].coins+=600;else if(c==="ff")data[user].black+=25;else return alert("کد اشتباه");
+  cheats.push(user+"_"+c);save();renderAll();alert("اعمال شد");
 }
-
-// load
-window.onload=()=>{
-  let u=localStorage.getItem("happyCoinCurrentUser");
-  if(u){currentUser=u; init(u); start();}
-};
 </script>
 </body>
-  </html>
+</html>
