@@ -1,78 +1,273 @@
-<!DOCTYPE html><html lang="fa">
+<!DOCTYPE html>
+<html lang="fa">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Happy Coin - چالش روزانه با ۵ طبقه</title>
+  <title>Happy Coin - نسخه 0.0.4</title>
   <style>
-    body { background: #fffbe6; font-family: Tahoma, sans-serif; text-align: center; padding: 20px; color: #333; }
-    body.dark { background-color: #121212; color: #eee; }
-    #loginDiv, #gameDiv { max-width:480px; margin:auto; }
-    input[type="text"] { font-size:1.1rem; padding:10px; width:90%; margin-bottom:15px; border-radius:5px; border:1px solid #ccc; }
-    button { font-size:1rem; padding:8px 20px; background:#c29200; border:none; color:#fff; border-radius:5px; cursor:pointer; margin:5px; }
-    button:hover { background:#a17300; }
-    #coin { width:150px; cursor:pointer; user-select:none; margin-top:10px; transition:transform .2s; }
-    #coin.clicked { animation:bounce .3s; }
-    @keyframes bounce {0%{transform:scale(1) rotate(0deg);}30%{transform:scale(1.2) translateY(-20px) rotate(20deg);}60%{transform:scale(1.1) translateY(10px) rotate(-20deg);}100%{transform:scale(1) rotate(0deg);} }
-    #count,#blackCoins { font-size:1.4rem; margin-top:15px; font-weight:bold; }
-    #leaderboard { margin-top:25px; text-align:right; }
-    table{width:100%;border-collapse:collapse;font-size:0.9rem;}th,td{border:1px solid #c29200;padding:6px;}th{background:#f3d87f;}
-    #shop,#dailyChallenge{margin-top:30px;border-top:2px solid #c29200;padding-top:15px;}
-    .floor-btn{margin:5px;}
-    .mini-game{margin-top:20px;border:1px solid #c29200;padding:15px;border-radius:8px;background:#fff8d6;}
-    #cheatDiv{margin-top:20px;}#footer{margin-top:40px;font-size:.9rem;color:#666;}
-    .hidden{display:none;}#catchAppleGame{position:relative;width:300px;height:300px;margin:20px auto;background:#a0d8f0;border-radius:12px;overflow:hidden;}#apple{position:absolute;top:0;left:130px;width:30px;height:30px;background:red;border-radius:50%;cursor:pointer;}#basket{position:absolute;bottom:10px;left:120px;width:60px;height:30px;background:brown;border-radius:15px 15px 0 0;}
+    body { background: #fffbe6; font-family: Tahoma, sans-serif; text-align: center; padding: 20px; color: #333; transition:background 0.5s,color 0.5s }
+    body.dark { background: #121212; color: #eee }
+    #loginDiv,#gameDiv { max-width:480px;margin:auto }
+    input,button { font-size:1rem;padding:8px; margin:5px }
+    button { background:#c29200;color:#fff;border:none;border-radius:5px;cursor:pointer;transition:background .3s }
+    button:hover:not(:disabled){background:#a17300}
+    button:disabled{background:#999;cursor:default}
+    #coin { width:150px;cursor:pointer;transition:transform .2s }
+    #coin.clicked{animation:bounce .3s}
+    @keyframes bounce{0%{transform:scale(1)}30%{transform:scale(1.2)}60%{transform:scale(1.1)}100%{transform:scale(1)}}
+    #count,#blackCoins{font-weight:bold;font-size:1.4rem;margin-top:15px}
+    table{width:100%;border-collapse:collapse;margin-top:20px}
+    th,td{border:1px solid #c29200;padding:6px}
+    th{background:#f3d87f}
+    #shop,#dailyChallenge{margin-top:30px;border-top:2px solid #c29200;padding-top:15px}
+    .floor-btn{display:block;width:100%;text-align:left;padding:8px;margin:5px 0}
+    .mini-game{margin-top:20px;border:1px solid #c29200;padding:15px;border-radius:8px;background:#fff8d6}
+    .hidden{display:none}
+    #catchAppleGame{position:relative;width:300px;height:300px;margin:20px auto;background:#a0d8f0;border-radius:12px;overflow:hidden}
+    #apple{position:absolute;width:30px;height:30px;background:red;border-radius:50%;top:0;cursor:pointer}
+    #basket{position:absolute;width:60px;height:30px;background:brown;border-radius:15px 15px 0 0;bottom:10px;cursor:pointer}
+    #footer{margin-top:40px;font-size:0.9rem;color:#666}
   </style>
 </head>
 <body>
+
 <div id="loginDiv">
   <h2>خوش اومدی! اسم‌تو وارد کن 👇</h2>
-  <input type="text" id="username" placeholder="اسم کاربر" />
-  <br><button onclick="login()">ورود</button>
-</div><div id="gameDiv" style="display:none;">
+  <input id="username" placeholder="اسم کاربر" /><br>
+  <button onclick="login()">ورود</button>
+</div>
+
+<div id="gameDiv" style="display:none">
   <h2>سلام <span id="displayName"></span>!</h2>
-  <img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" alt="سکه" onclick="addCoin()" />
+  <img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" onclick="addCoin()" alt="سکه" />
   <div id="count">تعداد سکه: 0</div>
-  <div id="blackCoins">سکه سیاه: 0</div>  <div id="leaderboard">
-    <h3>🏆 جدول رتبه‌بندی</h3>
-    <table><thead><tr><th>رتبه</th><th>اسم</th><th>سکه</th></tr></thead>
-    <tbody id="leaderboardBody"></tbody></table>
-  </div>  <div id="shop">
+  <div id="blackCoins">سکه سیاه: 0</div>
+
+  <div id="shop">
     <h3>🛒 فروشگاه</h3>
     <p>تم دارک مود: ۳۴ سکه سیاه</p>
-    <button onclick="buyDarkMode()">خرید دارک مود</button>
-    <button onclick="toggleDarkMode()">تغییر تم</button>
-  </div>  <div id="dailyChallenge">
+    <button id="btnBuyDark" onclick="buyDarkMode()">خرید دارک مود</button>
+    <button id="btnToggleDark" onclick="toggleDarkMode()">تغییر تم</button>
+    <hr>
+    <p>جمع خودکار سکه: ۶۵ سکه سیاه</p>
+    <button id="btnBuyAuto" onclick="buyAutoCollect()">خرید جمع خودکار</button>
+    <div id="autoStatus"></div>
+  </div>
+
+  <div id="dailyChallenge">
     <h3>🏠 چالش روزانه - خرید طبقات</h3>
     <div id="floorsContainer"></div>
-    <div id="miniGameContainer"></div>
-  </div>  <div id="cheatDiv">
-    <button onclick="toggleCheatInput()">کد تقلب</button>
-    <div id="cheatInputDiv" style="display:none; margin-top:10px;">
+    <div id="miniGameContainer" class="mini-game">هیچ مینی‌گیمی باز نیست</div>
+  </div>
+
+  <div id="cheatDiv">
+    <button onclick="toggleCheat()">کد تقلب</button>
+    <div id="cheatBox" class="hidden">
       <input id="cheatCode" placeholder="کد رو وارد کن" />
-      <button onclick="applyCheat()">اعمال کد</button>
+      <button onclick="applyCheat()">اعمال</button>
     </div>
   </div>
-  <div id="footer">نسخه:0.0.3 | توسط Rob Lucci</div>
-</div><script>
-let currentUser=null,usersData=JSON.parse(localStorage.getItem("happyCoinUsers")||"{}"),usedCheatCodes=JSON.parse(localStorage.getItem("usedCheatCodes")||"[]");
-const maxFloor=5;const floorBase=1000;
-function initUserData(n){if(!usersData[n]){usersData[n]={coins:0,blackCoins:0,floorsBought:0,darkModeBought:false,darkModeActive:false,token:'_'+Math.random().toString(36).substr(2,9)};saveData()}}
-function login(){let n=document.getElementById("username").value.trim();if(n.length<2)return alert("اسم باید حداقل ۲ حرف باشد");currentUser=n;initUserData(n);localStorage.setItem("happyCoinCurrentUser",n);loginFinish()}
-function loginFinish(){document.getElementById("loginDiv").style.display="none";document.getElementById("gameDiv").style.display="block";updateUI();renderFloors()}
-function saveData(){localStorage.setItem("happyCoinUsers",JSON.stringify(usersData));localStorage.setItem("usedCheatCodes",JSON.stringify(usedCheatCodes))}
-function updateUI(){document.getElementById("displayName").innerText=currentUser;updateCoinCount();updateBlackCoins();renderLeaderboard();updateDarkMode();showShop()}
-function updateCoinCount(){document.getElementById("count").innerText="تعداد سکه: "+usersData[currentUser].coins}
-function updateBlackCoins(){document.getElementById("blackCoins").innerText="سکه سیاه: "+usersData[currentUser].blackCoins}
-function addCoin(){let u=usersData[currentUser];u.coins++;if(u.coins%15==0)u.blackCoins++;saveData();updateUI();document.getElementById("coin").classList.add("clicked");setTimeout(()=>document.getElementById("coin").classList.remove("clicked"),300)}
-function renderLeaderboard(){let t="",arr=Object.entries(usersData).sort((a,b)=>b[1].coins-a[1].coins);arr.forEach((e,i)=>t+=`<tr><td>${i+1}</td><td>${e[0]}</td><td>${e[1].coins}</td></tr>`);document.getElementById("leaderboardBody").innerHTML=t}
-function buyDarkMode(){let u=usersData[currentUser];if(u.blackCoins>=34){u.blackCoins-=34;u.darkModeBought=true;u.darkModeActive=true;saveData();updateUI();updateDarkMode();alert("دارک مود فعال شد")}else alert("سکه سیاه کافی نیست")}
-function toggleDarkMode(){let u=usersData[currentUser];if(u.darkModeBought){u.darkModeActive=!u.darkModeActive;saveData();updateDarkMode()}else alert("ابتدا بخر!")}
-function updateDarkMode(){document.body.classList.toggle("dark",usersData[currentUser].darkModeActive)}
-function showShop(){document.getElementById("shop").style.display="block"}
-function renderFloors(){let c="",u=usersData[currentUser];for(let i=1;i<=maxFloor;i++){let cost=floorBase*i;let bought=i<=u.floorsBought; c+=`<button class='floor-btn' onclick='buyFloor(${i})' ${bought?"disabled":""}>${bought?"✅":"🪙"}طبقه ${i} - ${cost} سکه</button>`}document.getElementById("floorsContainer").innerHTML=c}
-function buyFloor(i){let u=usersData[currentUser],cost=floorBase*i; if(u.coins>=cost){u.coins-=cost;u.floorsBought=i;saveData();updateUI();renderFloors();alert(`طبقه ${i} باز شد!`)}else alert("سکه کافی نیست")}
-function toggleCheatInput(){let d=document.getElementById("cheatInputDiv");d.style.display=d.style.display=="none"?"block":"none"}
-function applyCheat(){let code=document.getElementById("cheatCode").value.trim().toLowerCase();if(!code)return alert("کد خالی است");if(usedCheatCodes.includes(currentUser+"_"+code))return alert("استفاده شده");let u=usersData[currentUser];if(code=="fff")u.coins+=600;else if(code=="ff")u.blackCoins+=25;else return alert("کد اشتباه");usedCheatCodes.push(currentUser+"_"+code);saveData();updateUI();alert("کد اعمال شد!")}
-window.onload=()=>{let s=localStorage.getItem("happyCoinCurrentUser");if(s&&usersData[s]){currentUser=s;loginFinish()}}
-</script></body>
-</html>
+
+  <div id="footer">نسخه 0.0.4 | ساخته توسط Rob Lucci</div>
+</div>
+
+<script>
+let currentUser, usersData=JSON.parse(localStorage.getItem("happyCoinUsers")||"{}"), usedCheat=JSON.parse(localStorage.getItem("usedCheatCodes")||"[]");
+const maxFloor=5, floorCost=1000;
+let autoInterval, autoTimeout, cooldown=false;
+
+// init user
+function init(name){
+  if(!usersData[name]){
+    usersData[name]={coins:0,blackCoins:0,floors:0,dark:0,auto:0,token:"_"+Math.random().toString(36).slice(2)};
+    save();
+  }
+}
+
+// login
+function login(){
+  const n=document.getElementById("username").value.trim();
+  if(n.length<2)return alert("اسم کوتاهه");
+  currentUser=n; init(n);
+  localStorage.setItem("happyCoinCurrentUser",n); start();
+}
+
+// start UI
+function start(){
+  document.getElementById("loginDiv").style.display="none";
+  document.getElementById("gameDiv").style.display="block";
+  refresh();
+  renderFloors();
+}
+
+// save
+function save(){
+  localStorage.setItem("happyCoinUsers",JSON.stringify(usersData));
+  localStorage.setItem("usedCheatCodes",JSON.stringify(usedCheat));
+}
+
+// refresh UI
+function refresh(){
+  const u=usersData[currentUser];
+  document.getElementById("displayName").innerText=currentUser;
+  document.getElementById("count").innerText="تعداد سکه: "+u.coins;
+  document.getElementById("blackCoins").innerText="سکه سیاه: "+u.blackCoins;
+  document.getElementById("btnBuyDark").disabled=!(u.blackCoins>=34&&!u.dark);
+  document.getElementById("btnToggleDark").disabled=!u.dark;
+  document.getElementById("btnBuyAuto").disabled=!(u.blackCoins>=65&&!u.auto);
+  document.getElementById("autoStatus").innerText=u.auto?"جمع خودکار فعال":"";
+  updateDark();
+  renderLeaderboard();
+}
+
+// click coin
+function addCoin(){
+  let u=usersData[currentUser]; u.coins++; if(u.coins%15==0)u.blackCoins++;
+  save(); refresh();
+  const c=document.getElementById("coin"); c.classList.add("clicked");
+  setTimeout(()=>c.classList.remove("clicked"),300);
+}
+
+// leaderboard
+function renderLeaderboard(){
+  let html="", arr=Object.entries(usersData).sort((a,b)=>b[1].coins-a[1].coins);
+  arr.forEach((e,i)=>html+=`<tr><td>${i+1}</td><td>${e[0]}</td><td>${e[1].coins}</td></tr>`);
+  document.getElementById("leaderboardBody").innerHTML=html;
+}
+
+// dark
+function buyDarkMode(){let u=usersData[currentUser]; if(u.blackCoins>=34){u.blackCoins-=34;u.dark=1;save();refresh()}}
+function toggleDarkMode(){let u=usersData[currentUser]; if(u.dark){u.dark^=1;save();refresh()}}
+function updateDark(){document.body.classList.toggle("dark",!!usersData[currentUser].dark)}
+
+// auto collect
+function buyAutoCollect(){let u=usersData[currentUser];
+  if(u.blackCoins>=65&&!u.auto&&!cooldown){
+    u.blackCoins-=65;u.auto=1;save();refresh();
+    autoInterval=setInterval(addCoin,500);
+    autoTimeout=setTimeout(()=>{
+      clearInterval(autoInterval);
+      cooldown=true;
+      setTimeout(()=>{cooldown=false;refresh()},30000);
+    },50000);
+  }
+}
+
+// floors
+function renderFloors(){
+  const c=document.getElementById("floorsContainer"), u=usersData[currentUser];
+  let html="";
+  for(let i=1;i<=maxFloor;i++){
+    let cost=floorCost*i, bought=i<=u.floors;
+    html+=`<button class="floor-btn" onclick="buyFloor(${i})" ${bought?"disabled":""}>
+      ${bought?"✅":"🪙"} طبقه ${i} - ${cost} سکه
+    </button>`;
+  }
+  c.innerHTML=html;
+}
+
+// buy floor
+function buyFloor(i){
+  let u=usersData[currentUser], cost=floorCost*i;
+  if(u.coins<cost)return alert("سکه کافی نیست");
+  u.coins-=cost;u.floors=i;save();refresh(); renderFloors(); openMini(i);
+}
+
+// open mini
+function openMini(f){
+  const c=document.getElementById("miniGameContainer");
+  c.innerHTML="";
+  if(f==1){
+    c.innerHTML=`<h4>حدس عدد</h4><input id="g1" type="number" min="1" max="10" /><button onclick="chk1()">بزن</button><div id="r1"></div>`;
+  }
+  if(f==2){
+    c.innerHTML=`<h4>سرعت کلیک</h4><p id="msg2">روی دکمه بزنی شروع</p>
+    <button onclick="clk2()">کلیک</button><p id="t2"></p>`;
+    t2init();
+  }
+  if(f==3){
+    c.innerHTML=`<h4>حافظه</h4><div id="s3"></div><button onclick="str3()">شروع</button>
+    <input id="a3" /><button onclick="chk3()">تست</button><div id="r3"></div>`;
+  }
+  if(f==4){
+    c.innerHTML=`<h4>پرش توپ</h4><button onclick="jmp4()">پرش!</button><div id="r4"></div>`;
+  }
+  if(f==5){
+    c.innerHTML=`<h4>گرفتن سیب</h4><div id="catchAppleGame"><div id="apple"></div><div id="basket"></div></div><div id="r5"></div>`;
+    apple5();
+  }
+}
+
+// mini1
+function chk1(){
+  let g=+document.getElementById("g1").value, a=Math.floor(Math.random()*10)+1, r=document.getElementById("r1");
+  if(g==a){r.innerText="جواب درسته +100";usersData[currentUser].coins+=100;save();refresh()}else r.innerText="اشتباه: "+a;
+}
+
+// mini2
+let cnt2,tm2,iv2;
+function t2init(){cnt2=0;tm2=5;clearInterval(iv2);document.getElementById("t2").innerText="";}
+function clk2(){
+  if(tm2==5)iv2=setInterval(()=>{
+    tm2--;document.getElementById("t2").innerText="زمان: "+tm2;
+    if(!tm2){clearInterval(iv2);end2();}
+  },1e3);
+  cnt2++;
+}
+function end2(){if(cnt2>=5){alert("200 سکه");usersData[currentUser].coins+=200;save();refresh()}else alert("نشدی");}
+
+// mini3
+let seq3,pos3;
+function str3(){seq3=[];pos3=0;for(let i=0;i<3;i++)seq3.push(Math.ceil(Math.random()*9));
+  document.getElementById("s3").innerText=seq3.join("-");
+  setTimeout(()=>document.getElementById("s3").innerText="",3e3);
+}
+function chk3(){let a=document.getElementById("a3").value.split("-").map(Number);
+  if(JSON.stringify(a)===JSON.stringify(seq3)){alert("150 سکه");usersData[currentUser].coins+=150;save();refresh();}
+  else alert("اشتباه");
+}
+
+// mini4
+function jmp4(){alert("120 سکه");usersData[currentUser].coins+=120;save();refresh();}
+
+// mini5
+function apple5(){
+  let app=document.getElementById("apple"), box=document.getElementById("basket");
+  let x=120,y=0, score=0;
+  box.onmousemove=e=>{
+    let rect=box.parentElement.getBoundingClientRect();
+    x=e.clientX-rect.left-30; if(x<0)x=0; if(x>240)x=240;
+    box.style.left=x+"px";
+  };
+  function drop(){
+    y=0;app.style.left=Math.random()*270+"px";
+    let id=setInterval(()=>{
+      y+=5;app.style.top=y+"px";
+      if(y>270){
+        if(Math.abs(x-(parseInt(app.style.left)))<30){score++;document.getElementById("r5").innerText="سکه: "+score;}
+        clearInterval(id);setTimeout(drop,1e3);
+      }
+    },50);
+  }
+  drop();
+}
+
+// cheat
+function toggleCheat(){document.getElementById("cheatBox").classList.toggle("hidden")}
+function applyCheat(){
+  let c=document.getElementById("cheatCode").value.trim().toLowerCase();
+  if(!c)return alert("کد خالی");
+  if(usedCheat.includes(currentUser+"_"+c))return alert("استفاده شده");
+  let u=usersData[currentUser];
+  if(c==="fff")u.coins+=600; else if(c==="ff")u.blackCoins+=25; else return alert("کد اشتباه");
+  usedCheat.push(currentUser+"_"+c);save();refresh();alert("اعمال شد");
+}
+
+// load
+window.onload=()=>{
+  let s=localStorage.getItem("happyCoinCurrentUser");
+  if(s){currentUser=s;init(s);start();}
+};
+</script>
+</body>
+  </html>
