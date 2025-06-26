@@ -1,37 +1,54 @@
 <!DOCTYPE html>
 <html lang="fa">
 <head>
-  <meta charset="UTF-8">
-  <title>کلیک سکه خفن</title>
+  <meta charset="UTF-8" />
+  <title>Happy Coin - بازی سکه</title>
   <style>
     body {
       background: #fffbe6;
       font-family: Tahoma, sans-serif;
       text-align: center;
-      padding: 50px;
-      position: relative;
+      padding: 40px 20px;
     }
 
-    h1 {
-      color: #c29200;
-      font-size: 2.5rem;
-      margin-bottom: 20px;
+    #loginDiv, #gameDiv {
+      max-width: 400px;
+      margin: auto;
+    }
+
+    input[type="text"] {
+      font-size: 1.1rem;
+      padding: 10px;
+      width: 90%;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      font-size: 1.2rem;
+      padding: 10px 25px;
+      background-color: #c29200;
+      border: none;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #a17300;
     }
 
     #coin {
-      width: 180px;
+      width: 45vw;
+      max-width: 200px;
       cursor: pointer;
+      user-select: none;
       transition: transform 0.2s ease;
     }
 
     #coin.clicked {
       animation: bounce 0.3s ease;
-    }
-
-    #count {
-      font-size: 2rem;
-      color: #444;
-      margin-top: 20px;
     }
 
     @keyframes bounce {
@@ -41,44 +58,136 @@
       100% { transform: scale(1) rotate(0deg); }
     }
 
+    #count {
+      font-size: 1.8rem;
+      color: #444;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+
+    #leaderboard {
+      margin-top: 40px;
+      text-align: right;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+
+    th, td {
+      border: 1px solid #c29200;
+      padding: 8px;
+    }
+
+    th {
+      background-color: #f3d87f;
+    }
+
     #footer {
-      position: fixed;
-      bottom: 10px;
-      left: 0;
-      right: 0;
-      text-align: center;
+      margin-top: 40px;
+      font-size: 0.9rem;
       color: #666;
-      font-size: 1rem;
     }
   </style>
 </head>
 <body>
 
-  <h1>بزن روی سکه 😎</h1>
-  <img id="coin" src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8a/Gold_coin_icon.png/240px-Gold_coin_icon.png" onclick="addCoin()">
-  <div id="count">تعداد سکه: 0</div>
+  <div id="loginDiv">
+    <h2>خوش اومدی! اسم‌تو وارد کن 👇</h2>
+    <input type="text" id="username" placeholder="اسم کاربر" />
+    <br />
+    <button onclick="login()">ورود</button>
+  </div>
 
-  <div id="footer">
-    ساخته شده توسط <strong>Rob Lucci</strong> 💼🐆
+  <div id="gameDiv" style="display:none;">
+    <h2>سلام <span id="displayName"></span>! بزن روی سکه 😎</h2>
+    <img
+      id="coin"
+      src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png"
+      alt="سکه"
+      onclick="addCoin()"
+    />
+    <div id="count">تعداد سکه: 0</div>
+
+    <div id="leaderboard">
+      <h3>🏆 جدول رتبه‌بندی</h3>
+      <table>
+        <thead>
+          <tr><th>رتبه</th><th>اسم</th><th>سکه</th></tr>
+        </thead>
+        <tbody id="leaderboardBody"></tbody>
+      </table>
+    </div>
+
+    <div id="footer">
+      ساخته‌شده توسط <strong>Rob Lucci</strong> 💼🐆
+    </div>
   </div>
 
   <script>
-    let coins = localStorage.getItem("coins") || 0;
-    document.getElementById("count").innerText = "تعداد سکه: " + coins;
+    function generateToken() {
+      return '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    let currentUser = null;
+    let usersData = JSON.parse(localStorage.getItem("happyCoinUsers") || "{}");
+
+    function login() {
+      const name = document.getElementById("username").value.trim();
+      if(name.length < 2) {
+        alert("اسم باید حداقل ۲ حرف داشته باشه");
+        return;
+      }
+
+      if (!usersData[name]) {
+        usersData[name] = {
+          token: generateToken(),
+          coins: 0
+        };
+      }
+
+      currentUser = name;
+      localStorage.setItem("happyCoinUsers", JSON.stringify(usersData));
+
+      document.getElementById("loginDiv").style.display = "none";
+      document.getElementById("gameDiv").style.display = "block";
+      document.getElementById("displayName").innerText = currentUser;
+      updateCoinCount();
+      renderLeaderboard();
+    }
+
+    function updateCoinCount() {
+      document.getElementById("count").innerText = "تعداد سکه: " + usersData[currentUser].coins;
+    }
 
     function addCoin() {
-      coins++;
-      document.getElementById("count").innerText = "تعداد سکه: " + coins;
-      localStorage.setItem("coins", coins);
+      usersData[currentUser].coins++;
+      localStorage.setItem("happyCoinUsers", JSON.stringify(usersData));
+      updateCoinCount();
+      renderLeaderboard();
 
       let coin = document.getElementById("coin");
       coin.classList.add("clicked");
+      setTimeout(() => coin.classList.remove("clicked"), 300);
+    }
 
-      setTimeout(() => {
-        coin.classList.remove("clicked");
-      }, 300);
+    function renderLeaderboard() {
+      const tbody = document.getElementById("leaderboardBody");
+      tbody.innerHTML = "";
+
+      let sorted = Object.entries(usersData)
+        .sort((a, b) => b[1].coins - a[1].coins);
+
+      sorted.forEach(([name, data], index) => {
+        let tr = document.createElement("tr");
+        tr.innerHTML = `<td>${index+1}</td><td>${name}</td><td>${data.coins}</td>`;
+        tbody.appendChild(tr);
+      });
     }
   </script>
 
 </body>
-    </html>
+</html>
