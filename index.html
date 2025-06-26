@@ -12,17 +12,14 @@
       transition: background-color 0.5s, color 0.5s;
       color: #333;
     }
-
     body.dark {
       background-color: #121212;
       color: #eee;
     }
-
     #loginDiv, #gameDiv {
       max-width: 400px;
       margin: auto;
     }
-
     input[type="text"] {
       font-size: 1.1rem;
       padding: 10px;
@@ -31,7 +28,6 @@
       border-radius: 5px;
       border: 1px solid #ccc;
     }
-
     button {
       font-size: 1.2rem;
       padding: 10px 25px;
@@ -42,11 +38,9 @@
       cursor: pointer;
       margin: 5px;
     }
-
     button:hover {
       background-color: #a17300;
     }
-
     #coin {
       width: 45vw;
       max-width: 200px;
@@ -54,58 +48,54 @@
       user-select: none;
       transition: transform 0.2s ease;
     }
-
     #coin.clicked {
       animation: bounce 0.3s ease;
     }
-
     @keyframes bounce {
       0% { transform: scale(1) rotate(0deg); }
       30% { transform: scale(1.2) translateY(-20px) rotate(20deg); }
       60% { transform: scale(1.1) translateY(10px) rotate(-20deg); }
       100% { transform: scale(1) rotate(0deg); }
     }
-
     #count, #level, #blackCoins {
       font-size: 1.6rem;
       color: #444;
       margin-top: 15px;
       font-weight: bold;
     }
-
     #leaderboard {
       margin-top: 30px;
       text-align: right;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
       margin-top: 10px;
       font-size: 0.9rem;
     }
-
     th, td {
       border: 1px solid #c29200;
       padding: 8px;
     }
-
     th {
       background-color: #f3d87f;
     }
-
     #shop {
       margin-top: 30px;
       border-top: 2px solid #c29200;
       padding-top: 20px;
     }
-
     #footer {
       margin-top: 40px;
       font-size: 0.9rem;
       color: #666;
     }
-
+    #version {
+      margin-top: 20px;
+      font-size: 1.2rem;
+      color: #888;
+      font-weight: bold;
+    }
   </style>
 </head>
 <body>
@@ -149,12 +139,14 @@
     <div id="footer">
       ساخته‌شده توسط <strong>Rob Lucci</strong> 💼🐆
     </div>
+
+    <div id="version">
+      نسخه سایت: 0.0.1 🚀
+    </div>
   </div>
 
   <script>
-    // مقدار کلیک مورد نیاز برای هر لول
     const levelThresholds = [0, 450, 900, 1700, 2800, 3700, 5000];
-
     let currentUser = null;
     let usersData = JSON.parse(localStorage.getItem("happyCoinUsers") || "{}");
 
@@ -164,7 +156,6 @@
         alert("اسم باید حداقل ۲ حرف داشته باشه");
         return;
       }
-
       if (!usersData[name]) {
         usersData[name] = {
           coins: 0,
@@ -176,7 +167,6 @@
           token: '_' + Math.random().toString(36).substr(2, 9)
         };
       }
-
       currentUser = name;
       saveData();
       updateUI();
@@ -194,6 +184,7 @@
       updateBlackCoins();
       renderLeaderboard();
       updateDarkMode();
+      showShop();
     }
 
     function updateCoinCount() {
@@ -201,7 +192,9 @@
     }
 
     function updateLevel() {
-      document.getElementById("level").innerText = "سطح (Level): " + usersData[currentUser].level;
+      let lvl = usersData[currentUser].level;
+      if(usersData[currentUser].clicks === 0) lvl = 0;
+      document.getElementById("level").innerText = "سطح (Level): " + lvl;
     }
 
     function updateBlackCoins() {
@@ -213,7 +206,6 @@
       user.coins++;
       user.clicks++;
 
-      // چک کن لول آپ بشه
       let newLevel = user.level;
       for(let i = levelThresholds.length - 1; i >= 0; i--) {
         if(user.clicks >= levelThresholds[i]) {
@@ -224,7 +216,7 @@
 
       if(newLevel > user.level) {
         user.level = newLevel;
-        user.blackCoins += 10; // جایزه سکه سیاه
+        user.blackCoins += 10;
         alert("تبریک! به سطح " + newLevel + " رسیدی و ۱۰ سکه سیاه گرفتی!");
       }
 
@@ -239,10 +231,8 @@
     function renderLeaderboard() {
       const tbody = document.getElementById("leaderboardBody");
       tbody.innerHTML = "";
-
       let sorted = Object.entries(usersData)
         .sort((a, b) => b[1].coins - a[1].coins);
-
       sorted.forEach(([name, data], index) => {
         let tr = document.createElement("tr");
         tr.innerHTML = `<td>${index+1}</td><td>${name}</td><td>${data.coins}</td>`;
@@ -272,7 +262,7 @@
         saveData();
         updateDarkMode();
       } else {
-        alert("ابتدا باید تم دارک مود را بخری!");
+        alert("اول باید دارک مود رو بخری!");
       }
     }
 
@@ -283,6 +273,10 @@
       } else {
         document.body.classList.remove("dark");
       }
+    }
+
+    function showShop() {
+      document.getElementById("shop").style.display = "block";
     }
 
     function showGame() {
