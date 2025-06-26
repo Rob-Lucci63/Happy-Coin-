@@ -132,8 +132,17 @@
       return '_' + Math.random().toString(36).substr(2, 9);
     }
 
-    let currentUser = null;
+    let currentUser = localStorage.getItem("currentUser");
     let usersData = JSON.parse(localStorage.getItem("happyCoinUsers") || "{}");
+
+    // اگه کاربر قبلاً وارد شده بود، مستقیم وارد شه
+    if (currentUser && usersData[currentUser]) {
+      document.getElementById("loginDiv").style.display = "none";
+      document.getElementById("gameDiv").style.display = "block";
+      document.getElementById("displayName").innerText = currentUser;
+      updateCoinCount();
+      renderLeaderboard();
+    }
 
     function login() {
       const name = document.getElementById("username").value.trim();
@@ -150,6 +159,7 @@
       }
 
       currentUser = name;
+      localStorage.setItem("currentUser", currentUser);
       localStorage.setItem("happyCoinUsers", JSON.stringify(usersData));
 
       document.getElementById("loginDiv").style.display = "none";
