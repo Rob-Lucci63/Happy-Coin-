@@ -91,10 +91,9 @@
       color: #666;
     }
     #version {
-      margin-top: 20px;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
+      margin-top: 30px;
       color: #888;
-      font-weight: bold;
     }
   </style>
 </head>
@@ -138,10 +137,7 @@
 
     <div id="footer">
       ساخته‌شده توسط <strong>Rob Lucci</strong> 💼🐆
-    </div>
-
-    <div id="version">
-      نسخه سایت: 0.0.1 🚀
+      <div id="version">نسخه سایت: 0.0.2</div>
     </div>
   </div>
 
@@ -192,9 +188,22 @@
     }
 
     function updateLevel() {
-      let lvl = usersData[currentUser].level;
-      if(usersData[currentUser].clicks === 0) lvl = 0;
-      document.getElementById("level").innerText = "سطح (Level): " + lvl;
+      let user = usersData[currentUser];
+      let newLevel = 1;
+
+      for(let i = levelThresholds.length - 1; i >= 0; i--) {
+        if(user.clicks >= levelThresholds[i]) {
+          newLevel = i + 1;
+          break;
+        }
+      }
+
+      if (newLevel > user.level) {
+        user.blackCoins += (newLevel - user.level) * 10;
+        user.level = newLevel;
+      }
+
+      document.getElementById("level").innerText = "سطح (Level): " + user.level;
     }
 
     function updateBlackCoins() {
@@ -205,20 +214,6 @@
       let user = usersData[currentUser];
       user.coins++;
       user.clicks++;
-
-      let newLevel = user.level;
-      for(let i = levelThresholds.length - 1; i >= 0; i--) {
-        if(user.clicks >= levelThresholds[i]) {
-          newLevel = i + 1;
-          break;
-        }
-      }
-
-      if(newLevel > user.level) {
-        user.level = newLevel;
-        user.blackCoins += 10;
-        alert("تبریک! به سطح " + newLevel + " رسیدی و ۱۰ سکه سیاه گرفتی!");
-      }
 
       saveData();
       updateUI();
@@ -262,7 +257,7 @@
         saveData();
         updateDarkMode();
       } else {
-        alert("اول باید دارک مود رو بخری!");
+        alert("ابتدا باید تم دارک مود را بخری!");
       }
     }
 
