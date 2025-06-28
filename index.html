@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Coin - نسخه 0.2.9</title>
+  <title>Happy Coin - نسخه 0.3.0</title>
   <style>
     body { background: #fffbe6; font-family: Tahoma, sans-serif; text-align: center; padding: 20px; transition: background .3s, color .3s; }
     body.dark { background: #121212; color: #eee; }
@@ -26,6 +26,7 @@
     .controls { position: absolute; bottom: 5px; width: 100%; display: flex; justify-content: space-around; }
     .controls button { font-size: .9rem; }
     #timer { font-size: 1.5rem; margin-top: 10px; }
+    #footer { margin-top: 30px; font-size: 0.9rem; color: gray; }
   </style>
 </head>
 <body>
@@ -52,6 +53,10 @@
   <button id="cheatBtn">کد تقلب</button>
 </div>
 
+<div id="footer">
+  نسخه: 0.3.0 | ساخته شده توسط <strong>Rob Lucci</strong>
+</div>
+
   </div><button id="eventBtn">ایونت (۱۱۰۰ سکه)</button>
 
   <div id="eventContainer">
@@ -63,28 +68,23 @@
       <button id="closeEventBtn">خروج</button>
     </div>
   </div><script>
-  // Load/store data with persistent login
+  // persistent storage
   let db = JSON.parse(localStorage.getItem('hc')||'{}');
   let currentUser = localStorage.getItem('hcUser') || null;
-
   function save() {
     localStorage.setItem('hc', JSON.stringify(db));
-    if(currentUser) localStorage.setItem('hcUser', currentUser);
+    if (currentUser) localStorage.setItem('hcUser', currentUser);
   }
 
+  // login
   document.getElementById('loginBtn').onclick = () => {
     const name = document.getElementById('usernameInput').value.trim();
-    if(name.length < 2) return alert('اسم باید حداقل ۲ حرف باشد');
-    if(!db[name]) db[name] = {coins:0, black:0, floors:0, dark:false, cheats:[]};
-    currentUser = name;
-    save();
-    showGame();
+    if (name.length < 2) return alert('اسم باید حداقل ۲ حرف باشد');
+    if (!db[name]) db[name] = { coins:0, black:0, floors:0, dark:false, cheats:[] };
+    currentUser = name; save(); showGame();
   };
-
   window.onload = () => {
-    if(currentUser && db[currentUser]) {
-      showGame();
-    }
+    if (currentUser && db[currentUser]) showGame();
   };
 
   function showGame() {
@@ -93,6 +93,7 @@
     initGame();
   }
 
+  // init
   function initGame() {
     const u = db[currentUser];
     document.getElementById('userDisplay').innerText = currentUser;
@@ -106,132 +107,78 @@
     renderFloors();
     document.getElementById('cheatBtn').onclick = applyCheat;
     document.getElementById('eventBtn').onclick = startEvent;
-    document.getElementById('closeEventBtn').onclick = endEvent;
+    document.getElementById('closeEventBtn').onclick = finishEvent;
   }
 
+  // click coin
   function clickCoin() {
-    const u = db[currentUser];
-    u.coins++;
-    if(u.coins % 15 === 0) u.black++;
-    save();
-    initGame();
-    const el = document.getElementById('coin');
-    el.classList.add('clicked'); setTimeout(() => el.classList.remove('clicked'), 200);
+    const u = db[currentUser]; u.coins++; if (u.coins % 15 === 0) u.black++;
+    save(); initGame();
+    const el = document.getElementById('coin'); el.classList.add('clicked'); setTimeout(()=> el.classList.remove('clicked'),200);
   }
+  function toggleDark() { const u = db[currentUser]; u.dark = !u.dark; save(); document.body.classList.toggle('dark', u.dark); }
 
-  function toggleDark() {
-    const u = db[currentUser];
-    u.dark = !u.dark;
-    save();
-    document.body.classList.toggle('dark', u.dark);
-  }
-
-  // Auto-Click
+  // auto click
   let ai, at;
   function buyAuto() {
-    const u = db[currentUser];
-    if(u.black < 45) return alert('سکه سیاه کم است');
-    u.black -= 45;
-    save(); initGame();
-    document.getElementById('autoStatus').innerText = 'Auto-Click فعال';
+    const u = db[currentUser]; if (u.black < 45) return alert('سیاه کم است');
+    u.black -= 45; save(); initGame(); document.getElementById('autoStatus').innerText = 'Auto-Click فعال';
     clearInterval(ai); clearTimeout(at);
-    ai = setInterval(() => {
-      u.coins++; if(u.coins % 15 === 0) u.black++;
-      save(); initGame();
-    }, 500);
-    at = setTimeout(() => {
-      clearInterval(ai);
-      document.getElementById('autoStatus').innerText = 'Auto-Click پایان';
-    }, 5*60*1000);
+    ai = setInterval(()=>{ u.coins++; if(u.coins%15===0) u.black++; save(); initGame(); },500);
+    at = setTimeout(()=>{ clearInterval(ai); document.getElementById('autoStatus').innerText = 'Auto-Click پایان'; },5*60*1000);
   }
 
-  // Floors
+  // floors
   function renderFloors() {
-    const u = db[currentUser]; const cont = document.getElementById('floors'); cont.innerHTML = '';
-    for(let i=1; i<=5; i++) {
+    const u = db[currentUser]; const cont = document.getElementById('floors'); cont.innerHTML='';
+    for (let i=1; i<=5; i++) {
       const btn = document.createElement('button');
-      btn.innerText = (i<=u.floors ? '✅ ' : '🪙 ') + `طبقه ${i} - ${i*1000} سکه`;
-      if(i <= u.floors) btn.disabled = true;
-      else btn.onclick = () => buyFloor(i);
+      btn.innerText = (i<=u.floors?'✅ ':'🪙 ')+`طبقه ${i} - ${i*1000} سکه`;
+      if (i<=u.floors) btn.disabled=true; else btn.onclick=()=>buyFloor(i);
       cont.appendChild(btn);
     }
   }
-  function buyFloor(i) {
-    const u = db[currentUser]; const cost = i*1000;
-    if(u.coins < cost) return alert('سکه کم است');
-    u.coins -= cost;
-    u.black += 15;
-    u.floors = i;
-    save(); initGame();
-    alert(`طبقه ${i} خریداری شد و ۱۵ سکه سیاه دریافت شد`);
-  }
+  function buyFloor(i) { const u=db[currentUser], cost=i*1000; if(u.coins<cost) return alert('سکه کم است'); u.coins-=cost; u.black+=15; u.floors=i; save(); initGame(); alert(`طبقه ${i} خرید و +15 سیاه`); }
 
-  // Cheat codes
+  // cheat
   function applyCheat() {
-    const code = prompt('کد تقلب را وارد کنید:'); if(!code) return;
-    const u = db[currentUser];
-    if(u.cheats.includes(code)) return alert('این کد قبلاً استفاده شده');
+    const code = prompt('کد تقلب:'); if(!code) return;
+    const u = db[currentUser]; if(u.cheats.includes(code)) return alert('تکراری');
     if(code==='fff') u.coins+=600;
     else if(code==='ff') u.black+=25;
-    else if(code==='cp9'){ u.coins+=1000; u.black+=30; }
-    else if(code==='ty'){ u.coins+=2000; u.black+=50; }
-    else return alert('کد اشتباه است');
-    u.cheats.push(code);
-    save(); initGame();
-    alert('کد با موفقیت اعمال شد');
+    else if(code==='cp9'){u.coins+=1000;u.black+=30;}
+    else if(code==='ty'){u.coins+=2000;u.black+=50;}
+    else return alert('کد غلط'); u.cheats.push(code); save(); initGame(); alert('اعمال شد');
   }
 
-  // Event game
-  let timeLeft, evInterval;
+  // event
+  let timeLeft, evInterval, reactionTimeout;
   function startEvent() {
-    const u = db[currentUser];
-    if(u.coins < 1100) return alert('۱۱۰۰ سکه لازم است');
-    u.coins -= 1100; save(); initGame();
-    document.getElementById('eventContainer').style.display = 'block';
-    timeLeft = 60;
-    document.getElementById('timer').innerText = 'زمان: ' + timeLeft;
-    createWindows();
-    evInterval = setInterval(() => {
-      timeLeft--;
-      document.getElementById('timer').innerText = 'زمان: ' + timeLeft;
-      if(timeLeft <= 0) return finishEvent(true);
-      updateWindows();
-    }, 3000);
+    const u=db[currentUser]; if(u.coins<1100) return alert('۱۱۰۰ سکه لازم است'); clearInterval(evInterval); clearTimeout(reactionTimeout);
+    u.coins-=1100; save(); initGame(); document.getElementById('eventContainer').style.display='block';
+    timeLeft=60; document.getElementById('timer').innerText='زمان: '+timeLeft;
+    scheduleWindow();
+    evInterval=setInterval(()=>{ timeLeft--; document.getElementById('timer').innerText='زمان: '+timeLeft; if(timeLeft<=0) return finishEvent(true); scheduleWindow();},3000);
   }
-  function createWindows() {
-    const wc = document.getElementById('windowsContainer'); wc.innerHTML = '';
-    for(let i=0;i<5;i++) {
-      const w = document.createElement('div'); w.className = 'window';
-      const sh = document.createElement('div'); sh.className = 'shadow'; w.appendChild(sh);
-      const ctrl = document.createElement('div'); ctrl.className = 'controls';
-      const btnL = document.createElement('button'); btnL.innerText='نور';
-      const btnB = document.createElement('button'); btnB.innerText='ببند';
-      ctrl.append(btnL, btnB); w.appendChild(ctrl);
-      wc.appendChild(w);
+  function scheduleWindow() {
+    clearTimeout(reactionTimeout);
+    document.querySelectorAll('.window').forEach(w=> w.remove());
+    const wc=document.getElementById('windowsContainer');
+    const idx=Math.floor(Math.random()*5);
+    const clr=Math.random()<0.5?'white':'black';
+    for(let i=0;i<5;i++){
+      const w=document.createElement('div'); w.className='window';
+      const sh=document.createElement('div'); sh.className='shadow '+clr; sh.style.display=(i===idx?'block':'none'); w.appendChild(sh);
+      const ctrl=document.createElement('div'); ctrl.className='controls';
+      const btnL=document.createElement('button'); btnL.innerText='نور'; btnL.disabled=i!==idx;
+      const btnB=document.createElement('button'); btnB.innerText='ببند'; btnB.disabled=i!==idx;
+      btnL.onclick=()=>handleEvent('white',clr);
+      btnB.onclick=()=>handleEvent('black',clr);
+      ctrl.append(btnL,btnB); w.appendChild(ctrl); wc.appendChild(w);
     }
-    updateWindows();
+    reactionTimeout = setTimeout(()=>finishEvent(false), 3000);
   }
-  function updateWindows() {
-    const arr = document.querySelectorAll('.window');
-    arr.forEach(w=>{ w.querySelector('.shadow').style.display='none'; w._clr=null; w.querySelectorAll('button').forEach(b=>b.onclick=null); });
-    const idx = Math.floor(Math.random()*5);
-    const color = Math.random()<0.5?'white':'black';
-    const sel = arr[idx];
-    const sh = sel.querySelector('.shadow'); sh.className='shadow '+color; sh.style.display='block';
-    const [btnL,btnB] = sel.querySelectorAll('button');
-    btnL.onclick = ()=>handleEvent(idx,'white',color);
-    btnB.onclick = ()=>handleEvent(idx,'black',color);
-  }
-  function handleEvent(i,act,color) {
-    if(act===color) return; // correct, wait for next interval
-    finishEvent(false);
-  }
-  function finishEvent(win) {
-    clearInterval(evInterval);
-    document.getElementById('eventContainer').style.display='none';
-    const u = db[currentUser];
-    if(win) { u.coins+=1000; u.black+=35; save(); initGame(); alert('🎉 برنده شدی! +1000 سکه و +35 سیاه'); }
-    else alert('📛 باختی یا دیر شدی');
-  }
+  function handleEvent(act,clr) { clearTimeout(reactionTimeout); if(act!==clr) return finishEvent(false); /* correct, wait next */ }
+  function finishEvent(win) { clearInterval(evInterval); clearTimeout(reactionTimeout); document.getElementById('eventContainer').style.display='none'; const u=db[currentUser]; if(win){u.coins+=1000;u.black+=35;save();initGame();alert('🎉 برنده شدی! +1000 سکه و +35 سیاه');}else alert('📛 باختی یا دیر شدی'); }
 </script></body>
-  </html>
+</html>
