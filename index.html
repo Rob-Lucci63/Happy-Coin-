@@ -2,7 +2,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Coin - نسخه 0.3.1</title>
+  <title>Happy Coin - نسخه 0.3.2</title>
   <!-- CryptoJS AES -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
@@ -13,8 +13,8 @@
     input { width: 80%; border: 2px solid #c29200; border-radius: 5px; }
     button { background: #c29200; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
     button:hover { background: #a17300; }
-    #coin { width: 120px; height: 120px; cursor: pointer; transition: transform .2s; }
-    #coin.clicked { transform: scale(1.1); }
+    #coinCanvas { cursor: pointer; margin-top: 20px; transition: transform .2s; }
+    #coinCanvas.clicked { transform: scale(1.1); }
     .section { border: 2px solid #c29200; padding: 10px; margin-top: 20px; border-radius: 6px; background: #fff8d6; }
     #autoStatus { margin-top: 10px; color: #070; }
     #eventBtn { position: fixed; top: 20px; right: 20px; padding: 10px 20px; font-size: 14px; }
@@ -35,14 +35,15 @@
   <div id="loginDiv">
     <h2>Happy Coin 🎮</h2>
     <input id="usernameInput" placeholder="اسم خود را وارد کنید" />
-    <br><button id="loginBtn">ورود / ثبت‌نام</button>
+    <br><button id="loginBtn" type="button">ورود / ثبت‌نام</button>
   </div>  <div id="gameDiv" style="display:none;">
     <h2>سلام <span id="userDisplay"></span>!</h2>
-    <img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" alt="سکه" />
+    <!-- Canvas-based Golden Coin -->
+    <canvas id="coinCanvas" width="120" height="120"></canvas>
     <div id="count">سکه: 0</div>
     <div id="blackCount">سیاه: 0</div><div class="section">
-  <button id="darkModeBtn">تغییر تم (رایگان)</button>
-  <button id="autoBtn">Auto-Click (۴۵ سیاه)</button>
+  <button id="darkModeBtn" type="button">تغییر تم (رایگان)</button>
+  <button id="autoBtn" type="button">Auto-Click (۴۵ سیاه)</button>
   <div id="autoStatus"></div>
 </div>
 
@@ -52,14 +53,14 @@
 </div>
 
 <div class="section">
-  <button id="cheatBtn">کد تقلب</button>
+  <button id="cheatBtn" type="button">کد تقلب</button>
 </div>
 
 <div id="footer">
-  نسخه: 0.3.1 | ساخته شده توسط <strong>Rob Lucci</strong>
+  نسخه: 0.3.2 | ساخته شده توسط <strong>Rob Lucci</strong>
 </div>
 
-  </div><button id="eventBtn">ایونت (۱۱۰۰ سکه)</button>
+  </div><button id="eventBtn" type="button">ایونت (۱۱۰۰ سکه)</button>
 
   <div id="eventContainer">
     <div id="eventContent">
@@ -67,19 +68,30 @@
       <p>۶۰ ثانیه زنده بمون!</p>
       <div id="timer">زمان: 60</div>
       <div class="windows" id="windowsContainer"></div>
-      <button id="closeEventBtn">خروج</button>
+      <button id="closeEventBtn" type="button">خروج</button>
     </div>
   </div><script>
+  // Utility: sanitize user input
+  function sanitize(str) {
+    return str.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  // CryptoJS availability check
+  const hasCrypto = typeof CryptoJS !== 'undefined';
   const AES_KEY = 'SuperStrongKey2025!';
-  // Encryption
   function encrypt(data) {
-    return CryptoJS.AES.encrypt(JSON.stringify(data), AES_KEY).toString();
+    return hasCrypto ? CryptoJS.AES.encrypt(JSON.stringify(data), AES_KEY).toString() : btoa(JSON.stringify(data));
   }
   function decrypt(cipher) {
     try {
-      const bytes = CryptoJS.AES.decrypt(cipher, AES_KEY);
-      return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      if (hasCrypto) {
+        const bytes = CryptoJS.AES.decrypt(cipher, AES_KEY);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } else {
+        return JSON.parse(atob(cipher));
+      }
     } catch {
+      console.warn('Decrypt error or invalid data');
       return {};
     }
   }
@@ -91,18 +103,54 @@
   if (stored) db = decrypt(stored);
   const usrEnc = localStorage.getItem('hcUser');
   if (usrEnc) {
-    try { currentUser = CryptoJS.AES.decrypt(usrEnc, AES_KEY).toString(CryptoJS.enc.Utf8); } catch {} }
+    try {
+      currentUser = hasCrypto
+        ? CryptoJS.AES.decrypt(usrEnc, AES_KEY).toString(CryptoJS.enc.Utf8)
+        : atob(usrEnc);
+    } catch {
+      console.warn('User decrypt failed');
+    }
+  }
 
   function save() {
     localStorage.setItem('hc_enc', encrypt(db));
     if (currentUser) {
-      localStorage.setItem('hcUser', CryptoJS.AES.encrypt(currentUser, AES_KEY).toString());
+      const ue = hasCrypto
+        ? CryptoJS.AES.encrypt(currentUser, AES_KEY).toString()
+        : btoa(currentUser);
+      localStorage.setItem('hcUser', ue);
     }
   }
 
-  // login
+  // Canvas Coin Drawing
+  const canvas = document.getElementById('coinCanvas');
+  const ctx = canvas.getContext('2d');
+  function drawCoin() {
+    const cx = canvas.width/2, cy = canvas.height/2, r = 50;
+    const grad = ctx.createRadialGradient(cx-10, cy-10, 10, cx, cy, r);
+    grad.addColorStop(0, '#fff2a8');
+    grad.addColorStop(0.5, '#ffd700');
+    grad.addColorStop(1, '#b8860b');
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fillStyle = grad; ctx.fill();
+    ctx.lineWidth = 4; ctx.strokeStyle = '#e5c100'; ctx.stroke();
+  }
+
+  // Click handler on canvas inside initGame to ensure element exists
+  function setupCanvasClick() {
+    const c = document.getElementById('coinCanvas');
+    if (c) {
+      c.addEventListener('click', () => {
+        c.classList.add('clicked');
+        setTimeout(() => c.classList.remove('clicked'), 200);
+        clickCoin();
+      });
+    }
+  }
+
+  // login & init
   document.getElementById('loginBtn').onclick = () => {
-    const name = document.getElementById('usernameInput').value.trim();
+    let name = sanitize(document.getElementById('usernameInput').value.trim());
     if (name.length < 2) return alert('اسم باید حداقل ۲ حرف باشد');
     if (!db[name]) db[name] = { coins:0, black:0, floors:0, dark:false, cheats:[] };
     currentUser = name; save(); showGame();
@@ -121,8 +169,8 @@
     document.getElementById('count').innerText = 'سکه: ' + u.coins;
     document.getElementById('blackCount').innerText = 'سیاه: ' + u.black;
     document.body.classList.toggle('dark', u.dark);
+    drawCoin(); setupCanvasClick();
 
-    document.getElementById('coin').onclick = clickCoin;
     document.getElementById('darkModeBtn').onclick = toggleDark;
     document.getElementById('autoBtn').onclick = buyAuto;
     renderFloors();
@@ -131,73 +179,21 @@
     document.getElementById('closeEventBtn').onclick = () => finishEvent(false);
   }
 
-  function clickCoin() {
-    const u = db[currentUser]; u.coins++; if (u.coins % 15 === 0) u.black++;
-    save(); initGame();
-    const el = document.getElementById('coin'); el.classList.add('clicked'); setTimeout(()=> el.classList.remove('clicked'),200);
-  }
-
+  // core functions...
+  function clickCoin() { const u = db[currentUser]; u.coins++; if (u.coins % 15 === 0) u.black++; save(); initGame(); }
   function toggleDark() { const u = db[currentUser]; u.dark = !u.dark; save(); document.body.classList.toggle('dark', u.dark); }
-
-  // auto click
   let ai, at;
-  function buyAuto() {
-    const u = db[currentUser]; if (u.black < 45) return alert('سیاه کم است');
-    u.black -= 45; save(); initGame(); document.getElementById('autoStatus').innerText = 'Auto-Click فعال';
-    clearInterval(ai); clearTimeout(at);
-    ai = setInterval(()=>{ u.coins++; if(u.coins%15===0) u.black++; save(); initGame(); },500);
-    at = setTimeout(()=>{ clearInterval(ai); document.getElementById('autoStatus').innerText = 'Auto-Click پایان'; },5*60*1000);
+  function buyAuto() { const u = db[currentUser]; if (u.black < 45) return alert('سیاه کم است'); u.black -= 45; save(); initGame(); document.getElementById('autoStatus').innerText = 'Auto-Click فعال'; clearInterval(ai); clearTimeout(at);
+    ai = setInterval(() => { const uu=db[currentUser]; uu.coins++; if(uu.coins%15===0) uu.black++; save(); initGame(); }, 500);
+    at = setTimeout(() => { clearInterval(ai); document.getElementById('autoStatus').innerText = 'Auto-Click پایان'; }, 5*60*1000);
   }
-
-  // floors
-  function renderFloors() {
-    const u = db[currentUser]; const cont = document.getElementById('floors'); cont.innerHTML='';
-    for (let i=1; i<=5; i++) {
-      const btn = document.createElement('button');
-      btn.innerText = (i<=u.floors?'✅ ':'🪙 ')+`طبقه ${i} - ${i*1000} سکه`;
-      if (i<=u.floors) btn.disabled=true; else btn.onclick=()=>buyFloor(i);
-      cont.appendChild(btn);
-    }
-  }
+  function renderFloors() { const u=db[currentUser]; const cont=document.getElementById('floors'); cont.innerHTML=''; for(let i=1;i<=5;i++){ const btn=document.createElement('button'); btn.innerText=(i<=u.floors?'✅ ':'🪙 ')+`طبقه ${i} - ${i*1000} سکه`; if(i<=u.floors) btn.disabled=true; else btn.onclick=()=>buyFloor(i); cont.appendChild(btn);} }
   function buyFloor(i) { const u=db[currentUser], cost=i*1000; if(u.coins<cost) return alert('سکه کم است'); u.coins-=cost; u.black+=15; u.floors=i; save(); initGame(); alert(`طبقه ${i} خرید و +15 سیاه`); }
-
-  // cheat
-  function applyCheat() {
-    const code = prompt('کد تقلب:'); if(!code) return;
-    const u = db[currentUser]; if(u.cheats.includes(code)) return alert('تکراری');
-    if(code==='fff') u.coins+=600;
-    else if(code==='ff') u.black+=25;
-    else if(code==='cp9'){u.coins+=1000;u.black+=30;}
-    else if(code==='ty'){u.coins+=2000;u.black+=50;}
-    else return alert('کد غلط'); u.cheats.push(code); save(); initGame(); alert('اعمال شد');
-  }
-
-  // event
+  function applyCheat() { const code = prompt('کد تقلب:'); if(!code) return; const u=db[currentUser]; if(u.cheats.includes(code)) return alert('تکراری'); if(code==='fff') u.coins+=600; else if(code==='ff') u.black+=25; else if(code==='cp9'){u.coins+=1000;u.black+=30;} else if(code==='ty'){u.coins+=2000;u.black+=50;} else return alert('کد غلط'); u.cheats.push(code); save(); initGame(); alert('اعمال شد'); }
   let timeLeft, evInterval, reactionTimeout;
-  function startEvent() {
-    const u=db[currentUser]; if(u.coins<1100) return alert('۱۱۰۰ سکه لازم است');
-    clearInterval(evInterval); clearTimeout(reactionTimeout);
-    u.coins-=1100; save(); initGame();
-    document.getElementById('eventContainer').style.display='block';
-    timeLeft=60; document.getElementById('timer').innerText='زمان: '+timeLeft;
-    showWindow(); evInterval=setInterval(()=>{ timeLeft--; document.getElementById('timer').innerText='زمان: '+timeLeft; if(timeLeft<=0) return finishEvent(true); showWindow();},3000);
-  }
-  function showWindow() {
-    clearTimeout(reactionTimeout);
-    const wc=document.getElementById('windowsContainer'); wc.innerHTML='';
-    const idx=Math.floor(Math.random()*5); const clr=Math.random()<0.5?'white':'black';
-    for(let i=0;i<5;i++){
-      const w=document.createElement('div'); w.className='window';
-      const sh=document.createElement('div'); sh.className='shadow '+clr; sh.style.display=(i===idx?'block':'none'); w.appendChild(sh);
-      const ctrl=document.createElement('div'); ctrl.className='controls';
-      const btnL=document.createElement('button'); btnL.innerText='نور'; btnL.disabled=i!==idx;
-      const btnB=document.createElement('button'); btnB.innerText='ببند'; btnB.disabled=i!==idx;
-      btnL.onclick=()=>handleEvent('white',clr); btnB.onclick=()=>handleEvent('black',clr);
-      ctrl.append(btnL,btnB); w.appendChild(ctrl); wc.appendChild(w);
-    }
-    reactionTimeout=setTimeout(()=>finishEvent(false),3000);
-  }
-  function handleEvent(act,clr) { clearTimeout(reactionTimeout); if(act!==clr) return finishEvent(false); /* correct */ }
-  function finishEvent(win) { clearInterval(evInterval); clearTimeout(reactionTimeout); document.getElementById('eventContainer').style.display='none'; const u=db[currentUser]; if(win){u.coins+=1000;u.black+=35;save();initGame();alert('🎉 برنده شدی! +1000 سکه و +35 سیاه');}else alert('📛 باختی یا دیر شدی'); }
+  function startEvent() { const u=db[currentUser]; if(u.coins<1100) return alert('۱۱۰۰ سکه لازم است'); clearInterval(evInterval); clearTimeout(reactionTimeout); u.coins-=1100; save(); initGame(); document.getElementById('eventContainer').style.display='block'; timeLeft=60; document.getElementById('timer').innerText='زمان: '+timeLeft; showWindow(); evInterval=setInterval(()=>{ timeLeft--; document.getElementById('timer').innerText='زمان: '+timeLeft; if(timeLeft<=0) return finishEvent(true); showWindow();},3000); }
+  function showWindow() { clearTimeout(reactionTimeout); const wc=document.getElementById('windowsContainer'); wc.innerHTML=''; const idx=Math.floor(Math.random()*5); const clr=Math.random()<0.5?'white':'black'; for(let i=0;i<5;i++){ const w=document.createElement('div'); w.className='window'; const sh=document.createElement('div'); sh.className='shadow '+clr; sh.style.display=(i===idx?'block':'none'); w.appendChild(sh); const ctrl=document.createElement('div'); ctrl.className='controls'; const btnL=document.createElement('button'); btnL.innerText='نور'; btnL.disabled=i!==idx; const btnB=document.createElement('button'); btnB.innerText='ببند'; btnB.disabled=i!==idx; btnL.onclick=()=>handleEvent('white',clr); btnB.onclick=()=>handleEvent('black',clr); ctrl.append(btnL,btnB); w.appendChild(ctrl); wc.appendChild(w);} reactionTimeout=setTimeout(()=>finishEvent(false),3000); }
+  function handleEvent(act,clr) { clearTimeout(reactionTimeout); if(act!==clr) return finishEvent(false); }
+  function finishEvent(win) { clearInterval(evInterval); clearTimeout(reactionTimeout); document.getElementById('eventContainer').style.display='none'; const u=db[currentUser]; if(win){ u.coins+=1000; u.black+=35; save(); initGame(); alert('🎉 برنده شدی! +1000 سکه و +35 سیاه'); } else alert('📛 باختی یا دیر شدی'); }
 </script></body>
 </html>
