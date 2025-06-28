@@ -1,8 +1,8 @@
 <!DOCTYPE html><html lang="fa">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Happy Coin - نسخه 0.2.4</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Happy Coin - نسخه 0.2.5</title>
   <!-- Vazir Font -->
   <link href="https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.css" rel="stylesheet">
   <!-- CryptoJS for AES Encryption -->
@@ -45,21 +45,16 @@
   <div id="autoStatus"></div>
 </div>
 
-<div class="section" id="dailyChallenge">
+<div class="section" id="floorsSection">
   <h3>خرید طبقات</h3>
   <div id="floorsContainer"></div>
-</div>
-
-<div class="section" id="miniGameSection">
-  <h3>بازی‌های طبقه‌ها</h3>
-  <div id="miniGameContainer"></div>
 </div>
 
 <div class="section" id="cheatDiv">
   <button id="cheatBtn">اعمال کد تقلب</button>
 </div>
 
-<div id="footer">نسخه:0.2.4 | Rob Lucci</div>
+<div id="footer">نسخه:0.2.5 | Rob Lucci</div>
 
   </div><button id="eventBtn">ایونت</button>
 
@@ -85,9 +80,9 @@
 
   document.getElementById('loginBtn').onclick=()=>{
     const name=document.getElementById('usernameInput').value.trim();
-    if(name.length<2)return alert('اسم باید حداقل ۲ حرف باشد');
+    if(name.length<2) return alert('اسم باید حداقل ۲ حرف باشد');
     current=name;
-    if(!users[current])users[current]={coins:0,blackCoins:0,floors:0,dark:false};
+    if(!users[current]) users[current]={coins:0,blackCoins:0,floors:0,dark:false};
     localStorage.setItem('current',encrypt(current));
     saveAll();
     document.getElementById('loginDiv').style.display='none';
@@ -106,7 +101,7 @@
   };
 
   function initGame(){
-    updateUI(); renderFloors(); renderMiniGames(); setupShop(); setupEvent();
+    updateUI(); renderFloors(); setupShop(); setupEvent();
     document.getElementById('coin').onclick=addCoin;
     document.getElementById('darkModeBtn').onclick=toggleDark;
     document.getElementById('autoBtn').onclick=buyAuto;
@@ -121,36 +116,48 @@
     document.body.classList.toggle('dark',u.dark);
   }
 
-  function addCoin(){const u=users[current];u.coins++;if(u.coins%15===0)u.blackCoins++;saveAll();updateUI();const c=document.getElementById('coin');c.classList.add('clicked');setTimeout(()=>c.classList.remove('clicked'),200);}
-  function toggleDark(){users[current].dark=!users[current].dark;saveAll();updateUI();}
+  function addCoin(){
+    const u=users[current]; u.coins++; if(u.coins%15===0) u.blackCoins++;
+    saveAll(); updateUI();
+    const c=document.getElementById('coin'); c.classList.add('clicked'); setTimeout(()=>c.classList.remove('clicked'),200);
+  }
+  function toggleDark(){ users[current].dark=!users[current].dark; saveAll(); updateUI(); }
 
   // Auto-Click
-  function setupShop(){const u=users[current]; const status=document.getElementById('autoStatus');
-    document.getElementById('autoBtn').innerText='خرید Auto-Click (۴۵ سکه سیاه)'; status.innerText='';
-  }
-  function buyAuto(){const u=users[current];if(u.blackCoins<45){alert('سکه سیاه کافی نیست');return;}u.blackCoins-=45;saveAll();updateUI();
-    const status=document.getElementById('autoStatus');status.innerText='Auto-Click فعال شد';
-    clearInterval(autoInterval);clearTimeout(autoTimeout);
-    autoInterval=setInterval(()=>{u.coins++;if(u.coins%15===0)u.blackCoins++;saveAll();updateUI();},500);
-    autoTimeout=setTimeout(()=>{clearInterval(autoInterval);status.innerText='Auto-Click پایان یافت';},5*60*1000);
+  function setupShop(){ document.getElementById('autoStatus').innerText=''; }
+  function buyAuto(){ const u=users[current]; if(u.blackCoins<45){ alert('سکه سیاه کافی نیست'); return; } u.blackCoins-=45; saveAll(); updateUI();
+    document.getElementById('autoStatus').innerText='Auto-Click فعال شد';
+    clearInterval(autoInterval); clearTimeout(autoTimeout);
+    autoInterval=setInterval(()=>{ u.coins++; if(u.coins%15===0) u.blackCoins++; saveAll(); updateUI(); },500);
+    autoTimeout=setTimeout(()=>{ clearInterval(autoInterval); document.getElementById('autoStatus').innerText='Auto-Click پایان یافت'; },5*60*1000);
   }
 
-  // Floors & Mini-games
+  // Floors Purchase
   const maxF=5, base=1000;
-  function renderFloors(){const u=users[current];let h='';for(let i=1;i<=maxF;i++){h+=`<button ${i<=u.floors?'disabled':''} onclick="buyFloor(${i})">${i<=u.floors?'✅':'🪙'} طبقه ${i} - قیمت ${base*i}</button>`;}document.getElementById('floorsContainer').innerHTML=h;}
-  function buyFloor(i){const u=users[current],cost=base*i;if(u.coins<cost){alert('سکه کم');return;}u.coins-=cost;u.blackCoins+=15;u.floors=Math.max(u.floors,i);saveAll();updateUI();renderFloors();renderMiniGames();}
-  function renderMiniGames(){const u=users[current],ct=document.getElementById('miniGameContainer');ct.innerHTML='';for(let i=1;i<=u.floors;i++){const b=document.createElement('button');b.innerText='بازی '+i;b.onclick=()=>{const w=confirm('برنده شدی؟');if(w){u.coins+=500;saveAll();updateUI();alert('500 سکه!');}};ct.appendChild(b);}}
+  function renderFloors(){ const u=users[current]; let h='';
+    for(let i=1;i<=maxF;i++){ h+=`<button ${i<=u.floors?'disabled':''} onclick="buyFloor(${i})">`+(i<=u.floors?'✅':'🪙')+` طبقه ${i} - ${base*i}</button>`; }
+    document.getElementById('floorsContainer').innerHTML=h;
+  }
+  function buyFloor(i){ const u=users[current], cost=base*i; if(u.coins<cost){ alert('سکه کم'); return; } u.coins-=cost; u.blackCoins+=15; u.floors=Math.max(u.floors,i); saveAll(); updateUI(); renderFloors(); alert('طبقه '+i+' خریداری شد'); }
 
-  // Cheat
-  function applyCheat(){const code=prompt('کد تقلب:').toLowerCase(),u=users[current];if(!code)return;if(cheats.includes(current+'_'+code))return alert('قبلا استفاده شد');if(code==='fff')u.coins+=600;else if(code==='ff')u.blackCoins+=25;else if(code==='cp9'){u.coins+=1000;u.blackCoins+=30;}else if(code==='ty'){u.coins+=2000;u.blackCoins+=50;}else return alert('کد اشتباه');cheats.push(current+'_'+code);saveAll();updateUI();alert('اعمال شد');}
+  // Cheat Codes
+  function applyCheat(){ const code=prompt('کد تقلب:').toLowerCase(), u=users[current]; if(!code) return; if(cheats.includes(current+'_'+code)) return alert('تکراری');
+    if(code==='fff') u.coins+=600; else if(code==='ff') u.blackCoins+=25; else if(code==='cp9'){u.coins+=1000;u.blackCoins+=30;} else if(code==='ty'){u.coins+=2000;u.blackCoins+=50;} else return alert('کد اشتباه'); cheats.push(current+'_'+code); saveAll(); updateUI(); alert('اعمال شد'); }
 
-  // Event game
-  let t,iv,windowsArr;
-  function setupEvent(){document.getElementById('eventBtn').onclick=openE;document.getElementById('closeEventBtn').onclick=closeE;}
-  function openE(){document.getElementById('eventGame').style.display='block';startE();}
-  function closeE(){clearInterval(iv);document.getElementById('eventGame').style.display='none';}
-  function startE(){t=60;document.getElementById('timer').innerText='زمان: '+t;const container=document.getElementById('windowsContainer');container.innerHTML='';windowsArr=[];for(let i=0;i<5;i++){const d=document.createElement('div');d.className='window-item';container.appendChild(d);windowsArr.push(d);}iv=setInterval(()=>{if(t<0)return finishE(false);document.getElementById('timer').innerText='زمان: '+t;spawn();t--;},3000);}
-  function spawn(){const idx=Math.floor(Math.random()*5);const type=Math.random()<0.5?'◯':'◉';windowsArr.forEach(d=>{d.classList.remove('active');d.innerHTML='';});const el=windowsArr[idx];el.classList.add('active');el.innerHTML=`<p>${type}</p>`;el.onclick=()=>{if(type==='◯'){users[current].blackCoins++;saveAll();updateUI();}else{return finishE(false);} el.onclick=null;};}
-  function finishE(win){clearInterval(iv);closeE();const u=users[current];if(win||t>=0){u.coins+=1000;u.blackCoins+=35;saveAll();updateUI();alert('1000 سکه و 35 سیاه!');}else alert('باخت یا زمان تموم شد');}
+  // Event Game
+  let t, iv, windowsArr;
+  function setupEvent(){ document.getElementById('eventBtn').onclick=openE; document.getElementById('closeEventBtn').onclick=closeE; }
+  function openE(){ document.getElementById('eventGame').style.display='block'; startE(); }
+  function closeE(){ clearInterval(iv); document.getElementById('eventGame').style.display='none'; }
+  function startE(){ t=60; document.getElementById('timer').innerText='زمان: '+t; const container=document.getElementById('windowsContainer'); container.innerHTML=''; windowsArr=[];
+    for(let i=0;i<5;i++){ const d=document.createElement('div'); d.className='window-item'; container.appendChild(d); windowsArr.push(d); }
+    iv=setInterval(()=>{ if(t<0) return finishE(false); document.getElementById('timer').innerText='زمان: '+t; spawn(); t--; },3000);
+  }
+  function spawn(){ const idx=Math.floor(Math.random()*5); const color=Math.random()<0.5?'◯':'◉'; windowsArr.forEach(d=>{ d.classList.remove('active'); d.innerHTML=''; d.onclick=null; });
+    const el=windowsArr[idx]; el.classList.add('active'); el.innerHTML=`<p>${color}</p>`;
+    el.onclick=()=>{ clearTimeout(); if(color==='◯'){ users[current].blackCoins++; saveAll(); updateUI(); spawn(); } else finishE(false); };
+    setTimeout(()=>{ if(el.onclick) finishE('noaction'); },3000);
+  }
+  function finishE(win){ clearInterval(iv); closeE(); const u=users[current]; if(win||t>=0){ u.coins+=1000; u.blackCoins+=35; saveAll(); updateUI(); alert('📜 جایزه: 1000 سکه و 35 سیاه!'); } else alert('📛 باختی یا زمان تموم شد'); }
 </script></body>
-</html>
+  </html>
