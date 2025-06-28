@@ -1,127 +1,253 @@
 <!DOCTYPE html><html lang="fa">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Happy Coin - نسخه 0.2.0</title>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Happy Coin - نسخه 0.2.2</title>
   <!-- Vazir Font -->
   <link href="https://cdn.fontcdn.ir/Font/Persian/Vazir/Vazir.css" rel="stylesheet">
-  <!-- CryptoJS -->
+  <!-- CryptoJS برای رمزنگاری AES -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
-    body { background: #fffbe6; font-family:'Vazir', monospace; text-align:center; padding:20px; color:#333; transition:background .5s, color .5s; }
+    body { background:#fffbe6; font-family:'Vazir',monospace; text-align:center; padding:20px; transition:background .5s,color .5s; }
     body.dark { background:#121212; color:#eee; }
     #loginDiv,#gameDiv{max-width:480px;margin:auto;}
-    h1,h2,h3{color:#c29200;text-shadow:2px 2px 0 #7a5700;}
     button{background:#c29200;border:none;color:#fff;padding:8px 16px;margin:5px;border-radius:4px;cursor:pointer;box-shadow:2px 2px 0 #7a5700;transition:background .3s;}
     button:hover{background:#a17300;}
-    #coin {width:150px;height:150px;cursor:pointer;border-radius:50%;image-rendering:pixelated;transition:transform .15s;}
+    #coin{width:150px;height:150px;border-radius:50%;cursor:pointer;transition:transform .15s;}
     #coin.clicked{transform:scale(1.1) rotate(10deg);}
     #count,#blackCoins,#timer{font-size:14px;margin:10px 0;color:#7a5700;text-shadow:1px 1px 0 #f0e68c;}
     #shop,#dailyChallenge,#miniGameSection,#eventDiv,#cheatDiv{margin-top:20px;padding:10px;border:2px solid #c29200;border-radius:6px;background:#fff8d6;}
     .floor-btn{margin:3px;}
     .tooltip{display:none;position:absolute;background:#333;color:#fff;padding:6px;border-radius:4px;font-size:12px;max-width:200px;z-index:100;}
-    /* Event button neon effect */
     #eventBtn{position:fixed;top:20px;right:20px;padding:10px 20px;font-size:14px;box-shadow:0 0 8px #fffbe6,0 0 16px #c29200,0 0 24px #7a5700;animation:neon 1.5s ease-in-out infinite alternate;}
     @keyframes neon{from{box-shadow:0 0 4px #fffbe6,0 0 8px #c29200;}to{box-shadow:0 0 12px #fff,0 0 24px #ff4500;}}
-    /* Event game */
     #eventGame{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);color:#fff;overflow:auto;}
     #eventGame .container{max-width:500px;margin:50px auto;padding:20px;background:#222;border-radius:8px;}
     .window-item{display:inline-block;width:80px;height:80px;margin:10px;background:#444;position:relative;}
-    .window-item img{width:100%;height:100%;object-fit:cover;}
+    .window-item p{position:absolute;top:5px;left:5px;font-size:18px;}
   </style>
 </head>
 <body>
-  <!-- Login -->
   <div id="loginDiv">
-    <h2>خوش اومدی! اسم‌تو وارد کن</h2>
-    <input type="text" id="username" placeholder="اسم کاربر" />
-    <br><button onclick="login()">ورود</button>
-  </div>  <!-- Game UI -->  <div id="gameDiv" style="display:none;">
-    <h2>سلام <span id="displayName"></span>!</h2>
-    <img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" alt="سکه" onclick="addCoin()" />
-    <div id="count">تعداد سکه: 0</div>
-    <div id="blackCoins">سکه سیاه: 0</div><div id="shop">
-  <h3>🛒 فروشگاه</h3>
-  <button onclick="toggleDarkMode()">تغییر تم (رایگان)</button>
-</div>
-
-<div id="dailyChallenge">
-  <h3>🏠 خرید طبقات</h3>
-  <div id="floorsContainer"></div>
-</div>
-
-<div id="miniGameSection">
-  <h3>🎮 بازی‌های طبقه‌ها</h3>
-  <div id="miniGameContainer"></div>
-</div>
-
-<div id="cheatDiv">
-  <button onclick="toggleCheatInput()">کد تقلب</button>
-  <div id="cheatInputDiv" style="display:none; margin-top:10px;">
-    <input id="cheatCode" placeholder="کد رو وارد کن" />
-    <button onclick="applyCheat()">اعمال کد</button>
+    <h2>Happy Coin 🎮</h2>
+    <button onclick="login()">ورود / ثبت‌نام</button>
   </div>
-</div>
-
-<div id="footer">نسخه:0.2.0 | Rob Lucci</div>
-
-  </div>  <!-- Event Button --><button id="eventBtn" onclick="openEvent()">ایونت</button>
-
-  <!-- Event Game Overlay -->  <div id="eventGame">
+  <div id="gameDiv" style="display:none;">
+    <h2>سلام <span id="displayName"></span>!</h2>
+    <img id="coin" src="https://i.postimg.cc/nrWTP5cb/coin-pixel.png" alt="سکه" onclick="addCoin()"/>
+    <div id="count">سکه: 0</div>
+    <div id="blackCoins">سیاه: 0</div>
+    <div id="shop"><button onclick="toggleDarkMode()">تغییر تم (رایگان)</button></div>
+    <div id="dailyChallenge"><h3>خرید طبقات</h3><div id="floorsContainer"></div></div>
+    <div id="miniGameSection"><h3>بازی‌های طبقه‌ها</h3><div id="miniGameContainer"></div></div>
+    <div id="cheatDiv"><button onclick="toggleCheatInput()">کد تقلب</button><div id="cheatInputDiv" style="display:none;margin-top:10px;"><button onclick="applyCheat()">اعمال کد</button></div></div>
+    <div id="footer">نسخه:0.2.2 | Rob Lucci</div>
+  </div>
+  <button id="eventBtn" onclick="openEvent()">ایونت</button>
+  <div id="eventGame">
     <div class="container">
-      <h2>چالش ایونت</h2>
-      <p>راهنما: داخل 60 ثانیه، اگر سایه‌ی <strong style="color:#fff;">سفید</strong> دیدی "نور" بزن، اگر "سیاه" دیدی "ببند". 5 پنجره وجود دارد.</p>
-      <div id="eventTimer">زمان: 60</div>
+      <h3>چالش ایونت</h3>
+      <p>راهنما: ۵ پنجره. ◉ = ببند، ◯ = نور. ۶۰ ثانیه.</p>
+      <div id="timer">زمان: 60</div>
       <div id="windowsContainer"></div>
       <button onclick="closeEvent()">خروج</button>
     </div>
-  </div><script>
-  // Data and storage
-  let currentUser=null; let usersData=JSON.parse(localStorage.getItem("happyCoinUsers")||"{}"); let usedCheatCodes=JSON.parse(localStorage.getItem("usedCheatCodes")||"[]");
-  function saveData(){localStorage.setItem("happyCoinUsers",JSON.stringify(usersData)); localStorage.setItem("usedCheatCodes",JSON.stringify(usedCheatCodes));}
+  </div>  <script>
+    const SECRET_KEY = 'RobLucci🔐StrongKey2025';
+    function encrypt(data) {
+      return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString();
+    }
+    function decrypt(cipher) {
+      try {
+        const bytes = CryptoJS.AES.decrypt(cipher, SECRET_KEY);
+        return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+      } catch {
+        return {};
+      }
+    }
 
-  // Init & Login
-  function initUserData(name){ if(!usersData[name]) usersData[name]={coins:0,blackCoins:0,floorsBought:0,darkModeActive:false}; saveData(); }
-  function login(){ let name=prompt('اسم خود را وارد کنید:'); if(!name||name.trim().length<2) return alert('اسم باید ۲ حرف یا بیشتر باشد'); currentUser=name.trim(); initUserData(currentUser); localStorage.setItem('happyCoinCurrentUser',currentUser); showGame(); }
-  window.onload=()=>{ let s=localStorage.getItem('happyCoinCurrentUser'); if(s){ currentUser=s; initUserData(s); showGame(); }};
-  function showGame(){ document.getElementById('loginDiv').style.display='none'; document.getElementById('gameDiv').style.display='block'; updateUI(); renderFloors(); renderMiniGameButtons(); }
+    // Load data
+    let usersData = decrypt(localStorage.getItem('happyCoinUsers') || '');
+    let usedCheatCodes = decrypt(localStorage.getItem('usedCheatCodes') || '');
+    let currentUser;
 
-  // UI Update
-  function updateUI(){ let u=usersData[currentUser]; document.getElementById('displayName').innerText=currentUser; document.getElementById('count').innerText='سکه: '+u.coins; document.getElementById('blackCoins').innerText='سیاه: '+u.blackCoins; document.body.classList.toggle('dark',u.darkModeActive);}
+    function saveData() {
+      localStorage.setItem('happyCoinUsers', encrypt(usersData));
+      localStorage.setItem('usedCheatCodes', encrypt(usedCheatCodes));
+    }
 
-  // Coin click
-  function addCoin(){ let u=usersData[currentUser]; u.coins++; if(u.coins%15===0) u.blackCoins++; saveData(); updateUI(); let c=document.getElementById('coin'); c.classList.add('clicked'); setTimeout(()=>c.classList.remove('clicked'),300); }
+    // User init & login
+    function initUser(name) {
+      if (!usersData[name]) {
+        usersData[name] = { coins: 0, blackCoins: 0, floorsBought: 0, darkModeActive: false };
+      }
+      saveData();
+    }
+    function login() {
+      let name = prompt('اسم خود را وارد کنید (۲ حرف یا بیشتر):');
+      if (!name || name.trim().length < 2) {
+        alert('اسم باید حداقل ۲ حرف باشد');
+        return;
+      }
+      currentUser = name.trim();
+      initUser(currentUser);
+      localStorage.setItem('happyCoinCurrentUser', encrypt(currentUser));
+      showGame();
+    }
+    window.onload = () => {
+      try {
+        const enc = localStorage.getItem('happyCoinCurrentUser');
+        const saved = decrypt(enc);
+        if (saved && usersData[saved]) {
+          currentUser = saved;
+          showGame();
+        }
+      } catch {}
+    };
 
-  // Dark mode
-  function toggleDarkMode(){ let u=usersData[currentUser]; u.darkModeActive=!u.darkModeActive; saveData(); updateUI(); }
+    function showGame() {
+      document.getElementById('loginDiv').style.display = 'none';
+      document.getElementById('gameDiv').style.display = 'block';
+      updateUI();
+      renderFloors();
+      renderMiniGameButtons();
+    }
 
-  // Floors
-  const maxFloor=5, floorBase=1000;
-  function renderFloors(){ let u=usersData[currentUser], html=''; for(let i=1;i<=maxFloor;i++){ let cost=floorBase*i, bought=i<=u.floorsBought; html+=`<button ${bought?'disabled':''} onclick='buyFloor(${i})'>${bought?'✅':'🪙'} طبقه ${i} - ${cost} سکه</button>`;} document.getElementById('floorsContainer').innerHTML=html; }
-  function buyFloor(i){ let u=usersData[currentUser], cost=floorBase*i; if(u.coins<cost) return alert('سکه کم'); u.coins-=cost; u.floorsBought=Math.max(u.floorsBought,i); saveData(); updateUI(); renderFloors(); renderMiniGameButtons(); alert('طبقه '+i+' خریده شد'); }
+    // UI update
+    function updateUI() {
+      let u = usersData[currentUser];
+      document.getElementById('displayName').innerText = currentUser;
+      document.getElementById('count').innerText = 'سکه: ' + u.coins;
+      document.getElementById('blackCoins').innerText = 'سیاه: ' + u.blackCoins;
+      document.body.classList.toggle('dark', u.darkModeActive);
+    }
 
-  // Mini-games
-  function renderMiniGameButtons(){ let u=usersData[currentUser], container=document.getElementById('miniGameContainer'); container.innerHTML=''; for(let i=1;i<=u.floorsBought;i++){ let btn=document.createElement('button'); btn.innerText='بازی '+i; btn.onclick=()=>playFloorGame(i); container.appendChild(btn);} }
-  function playFloorGame(f){ let win=confirm('بازی طبقه '+f+' شروع شد! آیا بردی؟'); if(win){ let u=usersData[currentUser]; u.coins+=500; saveData(); updateUI(); alert('500 سکه گرفتید!'); }}
+    // Coin click
+    function addCoin() {
+      let u = usersData[currentUser];
+      u.coins++;
+      if (u.coins % 15 === 0) u.blackCoins++;
+      saveData();
+      updateUI();
+      let c = document.getElementById('coin');
+      c.classList.add('clicked');
+      setTimeout(() => c.classList.remove('clicked'), 300);
+    }
 
-  // Cheat
-  function toggleCheatInput(){ let d=document.getElementById('cheatInputDiv'); d.style.display=d.style.display==='none'?'block':'none'; }
-  function applyCheat(){ let code=prompt('کد تقلب:').toLowerCase(), u=usersData[currentUser]; if(!code) return; if(usedCheatCodes.includes(currentUser+'_'+code)) return alert('استفاده شده'); if(code==='fff') u.coins+=600; else if(code==='ff') u.blackCoins+=25; else if(code==='cp9'){u.coins+=1000;u.blackCoins+=30;} else if(code==='ty'){u.coins+=2000;u.blackCoins+=50;} else return alert('اشتباه'); usedCheatCodes.push(currentUser+'_'+code); saveData(); updateUI(); alert('اعمال شد'); }
+    // Dark mode toggle
+    function toggleDarkMode() {
+      let u = usersData[currentUser];
+      u.darkModeActive = !u.darkModeActive;
+      saveData();
+      updateUI();
+    }
 
-  // Event Game
-  let eventTimer, eventTime=60;
-  function openEvent(){ document.getElementById('eventGame').style.display='block'; startEvent(); }
-  function closeEvent(){ clearInterval(eventTimer); document.getElementById('eventGame').style.display='none'; }
-  function startEvent(){ eventTime=60; document.getElementById('eventTimer').innerText='زمان: '+eventTime; let wc=document.getElementById('windowsContainer'); wc.innerHTML=''; // create windows
-    for(let i=0;i<5;i++){ let w=document.createElement('div'); w.className='window-item'; w.id='w'+i; wc.appendChild(w);} eventTimer=setInterval(()=>{
-      if(eventTime<=0){ endEvent(true); return;} eventTime--; document.getElementById('eventTimer').innerText='زمان: '+eventTime;
-      // random shadow and buttons
-      let idx=Math.floor(Math.random()*5), type=Math.random()<0.5?'white':'black'; let w=document.getElementById('w'+idx);
-      w.innerHTML=`<p style="position:absolute;top:5px;left:5px;color:${type};font-size:14px;">${type==='white'?'◯':'◉'}</p>`+
-        `<button onclick="handleEvent('${type}')">${type==='white'?'نور':'ببند'}</button>`;
-    },3000);
-  }
-  function handleEvent(type){ if(type==='black') return endEvent(false); /* close correct*/ }
-  function endEvent(win){ clearInterval(eventTimer); closeEvent(); if(win){ let u=usersData[currentUser]; u.coins+=1000; u.blackCoins+=35; saveData(); updateUI(); alert('تبریک! 1000 سکه و 35 سیاه گرفتید'); } else alert('باختید!'); }
-</script></body>
+    // Floors
+    const maxFloor = 5;
+    const floorBase = 1000;
+    function renderFloors() {
+      let u = usersData[currentUser];
+      let html = '';
+      for (let i = 1; i <= maxFloor; i++) {
+        let cost = floorBase * i;
+        let bought = i <= u.floorsBought;
+        html += `<button ${bought ? 'disabled' : ''} onclick="buyFloor(${i})">${bought ? '✅' : '🪙'} طبقه ${i} - ${cost}</button>`;
+      }
+      document.getElementById('floorsContainer').innerHTML = html;
+    }
+    function buyFloor(i) {
+      let u = usersData[currentUser];
+      let cost = floorBase * i;
+      if (u.coins < cost) { alert('سکه کم'); return; }
+      u.coins -= cost;
+      u.floorsBought = Math.max(u.floorsBought, i);
+      saveData();
+      updateUI();
+      renderFloors();
+      renderMiniGameButtons();
+      alert(`طبقه ${i} خریداری شد!`);
+    }
+
+    // Mini-games for floors
+    function renderMiniGameButtons() {
+      let u = usersData[currentUser];
+      let c = document.getElementById('miniGameContainer');
+      c.innerHTML = '';
+      for (let i = 1; i <= u.floorsBought; i++) {
+        let btn = document.createElement('button');
+        btn.innerText = 'بازی ' + i;
+        btn.onclick = () => playFloorGame(i);
+        c.appendChild(btn);
+      }
+    }
+    function playFloorGame(f) {
+      let win = confirm(`بازی ${f} شروع شد!
+آیا بردی؟`);
+      if (win) {
+        let u = usersData[currentUser];
+        u.coins += 500;
+        saveData();
+        updateUI();
+        alert('500 سکه گرفتید!');
+      }
+    }
+
+    // Cheat codes
+    function toggleCheatInput() {
+      let d = document.getElementById('cheatInputDiv');
+      d.style.display = d.style.display === 'none' ? 'block' : 'none';
+    }
+    function applyCheat() {
+      let code = prompt('کد تقلب:').toLowerCase();
+      let u = usersData[currentUser];
+      if (!code) return;
+      if (usedCheatCodes.includes(currentUser + '_' + code)) return alert('این کد قبلاً استفاده شده');
+      if (code === 'fff') u.coins += 600;
+      else if (code === 'ff') u.blackCoins += 25;
+      else if (code === 'cp9') { u.coins += 1000; u.blackCoins += 30; }
+      else if (code === 'ty') { u.coins += 2000; u.blackCoins += 50; }
+      else return alert('کد اشتباه');
+      usedCheatCodes.push(currentUser + '_' + code);
+      saveData();
+      updateUI();
+      alert('کد اعمال شد!');
+    }
+
+    // Event game
+    let eventTime, eventInterval;
+    function openEvent() {
+      document.getElementById('eventGame').style.display = 'block';
+      startEvent();
+    }
+    function closeEvent() {
+      clearInterval(eventInterval);
+      document.getElementById('eventGame').style.display = 'none';
+    }
+    function startEvent() {
+      eventTime = 60;
+      document.getElementById('timer').innerText = 'زمان: ' + eventTime;
+      eventInterval = setInterval(() => {
+        if (eventTime <= 0) { endEvent(false); return; }
+        document.getElementById('timer').innerText = 'زمان: ' + eventTime;
+        eventTime--;
+        spawnWindow();
+      }, 3000);
+    }
+    function spawnWindow() {
+      let idx = Math.floor(Math.random() * 5);
+      let type = Math.random() < 0.5 ? '◯' : '◉';
+      alert(`پنجره ${idx + 1}: ${type}`);
+    }
+    function endEvent(win) {
+      clearInterval(eventInterval);
+      closeEvent();
+      if (win) {
+        let u = usersData[currentUser];
+        u.coins += 1000; u.blackCoins += 35;
+        saveData();
+        updateUI();
+        alert('1000 سکه و 35 سیاه!');
+      } else alert('باخت یا زمان تموم شد');
+    }
+  </script></body>
 </html>
