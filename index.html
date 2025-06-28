@@ -2,7 +2,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Coin - نسخه 0.3.0</title>
+  <title>Happy Coin - نسخه 0.3.1</title>
+  <!-- CryptoJS AES -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
     body { background: #fffbe6; font-family: Tahoma, sans-serif; text-align: center; padding: 20px; transition: background .3s, color .3s; }
     body.dark { background: #121212; color: #eee; }
@@ -54,7 +56,7 @@
 </div>
 
 <div id="footer">
-  نسخه: 0.3.0 | ساخته شده توسط <strong>Rob Lucci</strong>
+  نسخه: 0.3.1 | ساخته شده توسط <strong>Rob Lucci</strong>
 </div>
 
   </div><button id="eventBtn">ایونت (۱۱۰۰ سکه)</button>
@@ -68,12 +70,34 @@
       <button id="closeEventBtn">خروج</button>
     </div>
   </div><script>
-  // persistent storage
-  let db = JSON.parse(localStorage.getItem('hc')||'{}');
-  let currentUser = localStorage.getItem('hcUser') || null;
+  const AES_KEY = 'SuperStrongKey2025!';
+  // Encryption
+  function encrypt(data) {
+    return CryptoJS.AES.encrypt(JSON.stringify(data), AES_KEY).toString();
+  }
+  function decrypt(cipher) {
+    try {
+      const bytes = CryptoJS.AES.decrypt(cipher, AES_KEY);
+      return JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
+    } catch {
+      return {};
+    }
+  }
+
+  // persistent encrypted storage
+  let db = {};
+  let currentUser = null;
+  const stored = localStorage.getItem('hc_enc');
+  if (stored) db = decrypt(stored);
+  const usrEnc = localStorage.getItem('hcUser');
+  if (usrEnc) {
+    try { currentUser = CryptoJS.AES.decrypt(usrEnc, AES_KEY).toString(CryptoJS.enc.Utf8); } catch {} }
+
   function save() {
-    localStorage.setItem('hc', JSON.stringify(db));
-    if (currentUser) localStorage.setItem('hcUser', currentUser);
+    localStorage.setItem('hc_enc', encrypt(db));
+    if (currentUser) {
+      localStorage.setItem('hcUser', CryptoJS.AES.encrypt(currentUser, AES_KEY).toString());
+    }
   }
 
   // login
@@ -83,9 +107,7 @@
     if (!db[name]) db[name] = { coins:0, black:0, floors:0, dark:false, cheats:[] };
     currentUser = name; save(); showGame();
   };
-  window.onload = () => {
-    if (currentUser && db[currentUser]) showGame();
-  };
+  window.onload = () => { if (currentUser && db[currentUser]) showGame(); };
 
   function showGame() {
     document.getElementById('loginDiv').style.display = 'none';
@@ -93,7 +115,6 @@
     initGame();
   }
 
-  // init
   function initGame() {
     const u = db[currentUser];
     document.getElementById('userDisplay').innerText = currentUser;
@@ -107,15 +128,15 @@
     renderFloors();
     document.getElementById('cheatBtn').onclick = applyCheat;
     document.getElementById('eventBtn').onclick = startEvent;
-    document.getElementById('closeEventBtn').onclick = finishEvent;
+    document.getElementById('closeEventBtn').onclick = () => finishEvent(false);
   }
 
-  // click coin
   function clickCoin() {
     const u = db[currentUser]; u.coins++; if (u.coins % 15 === 0) u.black++;
     save(); initGame();
     const el = document.getElementById('coin'); el.classList.add('clicked'); setTimeout(()=> el.classList.remove('clicked'),200);
   }
+
   function toggleDark() { const u = db[currentUser]; u.dark = !u.dark; save(); document.body.classList.toggle('dark', u.dark); }
 
   // auto click
@@ -154,31 +175,29 @@
   // event
   let timeLeft, evInterval, reactionTimeout;
   function startEvent() {
-    const u=db[currentUser]; if(u.coins<1100) return alert('۱۱۰۰ سکه لازم است'); clearInterval(evInterval); clearTimeout(reactionTimeout);
-    u.coins-=1100; save(); initGame(); document.getElementById('eventContainer').style.display='block';
+    const u=db[currentUser]; if(u.coins<1100) return alert('۱۱۰۰ سکه لازم است');
+    clearInterval(evInterval); clearTimeout(reactionTimeout);
+    u.coins-=1100; save(); initGame();
+    document.getElementById('eventContainer').style.display='block';
     timeLeft=60; document.getElementById('timer').innerText='زمان: '+timeLeft;
-    scheduleWindow();
-    evInterval=setInterval(()=>{ timeLeft--; document.getElementById('timer').innerText='زمان: '+timeLeft; if(timeLeft<=0) return finishEvent(true); scheduleWindow();},3000);
+    showWindow(); evInterval=setInterval(()=>{ timeLeft--; document.getElementById('timer').innerText='زمان: '+timeLeft; if(timeLeft<=0) return finishEvent(true); showWindow();},3000);
   }
-  function scheduleWindow() {
+  function showWindow() {
     clearTimeout(reactionTimeout);
-    document.querySelectorAll('.window').forEach(w=> w.remove());
-    const wc=document.getElementById('windowsContainer');
-    const idx=Math.floor(Math.random()*5);
-    const clr=Math.random()<0.5?'white':'black';
+    const wc=document.getElementById('windowsContainer'); wc.innerHTML='';
+    const idx=Math.floor(Math.random()*5); const clr=Math.random()<0.5?'white':'black';
     for(let i=0;i<5;i++){
       const w=document.createElement('div'); w.className='window';
       const sh=document.createElement('div'); sh.className='shadow '+clr; sh.style.display=(i===idx?'block':'none'); w.appendChild(sh);
       const ctrl=document.createElement('div'); ctrl.className='controls';
       const btnL=document.createElement('button'); btnL.innerText='نور'; btnL.disabled=i!==idx;
       const btnB=document.createElement('button'); btnB.innerText='ببند'; btnB.disabled=i!==idx;
-      btnL.onclick=()=>handleEvent('white',clr);
-      btnB.onclick=()=>handleEvent('black',clr);
+      btnL.onclick=()=>handleEvent('white',clr); btnB.onclick=()=>handleEvent('black',clr);
       ctrl.append(btnL,btnB); w.appendChild(ctrl); wc.appendChild(w);
     }
-    reactionTimeout = setTimeout(()=>finishEvent(false), 3000);
+    reactionTimeout=setTimeout(()=>finishEvent(false),3000);
   }
-  function handleEvent(act,clr) { clearTimeout(reactionTimeout); if(act!==clr) return finishEvent(false); /* correct, wait next */ }
+  function handleEvent(act,clr) { clearTimeout(reactionTimeout); if(act!==clr) return finishEvent(false); /* correct */ }
   function finishEvent(win) { clearInterval(evInterval); clearTimeout(reactionTimeout); document.getElementById('eventContainer').style.display='none'; const u=db[currentUser]; if(win){u.coins+=1000;u.black+=35;save();initGame();alert('🎉 برنده شدی! +1000 سکه و +35 سیاه');}else alert('📛 باختی یا دیر شدی'); }
 </script></body>
 </html>
