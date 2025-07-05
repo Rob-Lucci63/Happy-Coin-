@@ -3,76 +3,38 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Coin - نسخه 0.4.0</title>
+  <title>Happy Coin - نسخه 0.3.7</title>
   <!-- CryptoJS AES -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700&display=swap');
-
     body {
       direction: rtl;
       text-align: right;
-      background: #f9f5e3;
-      color: #333;
-      font-family: 'Vazirmatn', Tahoma, sans-serif;
+      background: #fffbe6;
+      font-family: Tahoma, sans-serif;
       padding: 20px;
-      transition: background 0.3s, color 0.3s;
+      transition: background .3s, color .3s;
       overflow-y: auto;
     }
     body.dark {
-      background: #1a1a1a;
-      color: #f0f0f0;
+      background: #121212;
+      color: #eee;
     }
     #loginDiv, #gameDiv { max-width: 480px; margin: 20px auto; }
-    input, button {
-      font-size: 1rem;
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      transition: all 0.2s ease;
-    }
-    input {
-      width: 80%;
-      border: 2px solid #d4a017;
-      background: #fff;
-    }
-    input:focus {
-      border-color: #a67c00;
-      outline: none;
-    }
-    button {
-      background: #d4a017;
-      color: #fff;
-      border: none;
-      cursor: pointer;
-    }
-    button:hover {
-      background: #b58900;
-      transform: scale(1.05);
-    }
-    button:focus {
-      outline: 2px solid #a67c00;
-    }
-    #coinCanvas {
-      cursor: pointer;
-      margin-top: 20px;
-      transition: transform 0.2s;
-    }
-    #coinCanvas.clicked {
-      transform: scale(1.1);
-    }
+    input, button { font-size: 1rem; padding: 10px; margin: 5px; }
+    input { width: 80%; border: 2px solid #c29200; border-radius: 5px; }
+    button { background: #c29200; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
+    button:hover { background: #a17300; }
+    #coinCanvas { cursor: pointer; margin-top: 20px; transition: transform .2s; }
+    #coinCanvas.clicked { transform: scale(1.1); }
     .section {
-      border: 2px solid #d4a017;
-      padding: 15px;
+      border: 2px solid #c29200;
+      padding: 10px;
       margin-top: 20px;
-      border-radius: 8px;
-      background: #fef8e6;
+      border-radius: 6px;
+      background: #fff8d6;
     }
-    body.dark .section {
-      background: #2a2a2a;
-      border-color: #444;
-    }
-    #autoStatus { margin-top: 10px; color: #2a7f2a; }
+    #autoStatus { margin-top: 10px; color: #070; }
     #eventBtn { padding: 10px 20px; font-size: 1rem; margin-top: 20px; }
     #eventContainer {
       display: none;
@@ -81,8 +43,7 @@
       background: rgba(0,0,0,0.8);
     }
     #eventContent {
-      background: #333;
-      color: #fff;
+      background: #222; color: #fff;
       max-width: 600px; margin: 50px auto;
       padding: 20px; border-radius: 8px;
       text-align: center;
@@ -112,8 +73,7 @@
     }
     .controls button { font-size: .9rem; }
     #timer { font-size: 1.5rem; margin-top: 10px; }
-    #footer { margin-top: 30px; font-size: 0.9rem; color: #666; }
-    body.dark #footer { color: #aaa; }
+    #footer { margin-top: 30px; font-size: 0.9rem; color: gray; }
     /* Discord chat button */
     #discordButton {
       position: fixed;
@@ -146,42 +106,42 @@
     <h2>Happy Coin 🎮</h2>
     <input id="usernameInput" placeholder="اسم خود را وارد کنید" aria-label="نام کاربری" />
     <br>
-    <button id="loginBtn" type="button" aria-label="ورود یا ثبت‌نام">ورود / ثبت‌نام</button>
+    <button id="loginBtn" type="button">ورود / ثبت‌نام</button>
   </div>
   <div id="gameDiv" style="display:none;">
     <h2>سلام <span id="userDisplay"></span>!</h2>
-    <canvas id="coinCanvas" width="120" height="120" aria-label="سکه"></canvas>
-    <div id="count" aria-live="polite">سکه: 0</div>
-    <div id="blackCount" aria-live="polite">سیاه: 0</div>
+    <canvas id="coinCanvas" width="120" height="120"></canvas>
+    <div id="count">سکه: 0</div>
+    <div id="blackCount">سیاه: 0</div>
     <div class="section">
-      <button id="darkModeBtn" type="button" aria-label="تغییر تم">تغییر تم (رایگان)</button>
-      <button id="autoBtn" type="button" aria-label="خرید Auto-Click">Auto-Click (۴۵ سیاه)</button>
-      <div id="autoStatus" aria-live="polite"></div>
+      <button id="darkModeBtn" type="button">تغییر تم (رایگان)</button>
+      <button id="autoBtn" type="button">Auto-Click (۴۵ سیاه)</button>
+      <div id="autoStatus"></div>
     </div>
     <div class="section">
       <h3>خرید طبقات (+۱۵ سیاه)</h3>
       <div id="floors"></div>
     </div>
     <div class="section">
-      <button id="cheatBtn" type="button" aria-label="وارد کردن کد تقلب">کد تقلب</button>
+      <button id="cheatBtn" type="button">کد تقلب</button>
     </div>
-    <button id="eventBtn" type="button" aria-label="شروع ایونت">ایونت (۱۱۰۰ سکه)</button>
+    <button id="eventBtn" type="button">ایونت (۱۱۰۰ سکه)</button>
     <div id="footer">
-      نسخه: 0.4.0 | ساخته شده توسط <strong>Rob Lucci</strong>
+      نسخه: 0.3.7 | ساخته شده توسط <strong>Rob Lucci</strong>
     </div>
   </div>
   <!-- Discord Link -->
-  <div id="discordButton" role="button" aria-label="پیوستن به سرور دیسکورد" onclick="window.open('https://discord.gg/pjF32Hy3vT', '_blank')">
+  <div id="discordButton" onclick="window.open('https://discord.gg/pjF32Hy3vT', '_blank')">
     <img src="https://cdn-icons-png.flaticon.com/512/2111/2111370.png" alt="Discord Chat">
   </div>
   <!-- Event Modal -->
-  <div id="eventContainer" role="dialog" aria-labelledby="eventTitle">
+  <div id="eventContainer">
     <div id="eventContent">
-      <h3 id="eventTitle">چالش پنجره‌ها</h3>
+      <h3>چالش پنجره‌ها</h3>
       <p>۶۰ ثانیه زنده بمون!</p>
-      <div id |="timer" aria-live="polite">زمان: 60</div>
+      <div id="timer">زمان: 60</div>
       <div class="windows" id="windowsContainer"></div>
-      <button id="closeEventBtn" type="button" aria-label="خروج از ایونت">خروج</button>
+      <button id="closeEventBtn" type="button">خروج</button>
     </div>
   </div>
   <script>
@@ -196,7 +156,8 @@
     }
 
     const hasCrypto = typeof CryptoJS !== 'undefined';
-    const AES_KEY = 'SuperStrongKey2025!'; // هشدار: این کلید باید در سرور ذخیره شود
+    // هشدار: کلید رمزنگاری نباید در کد جاوااسکریپت هاردکد شود. این فقط برای نمونه است.
+    const AES_KEY = 'SuperStrongKey2025!'; // این را تغییر دهید و در سرور ذخیره کنید
 
     function encrypt(d) {
       return hasCrypto ? CryptoJS.AES.encrypt(JSON.stringify(d), AES_KEY).toString() : btoa(JSON.stringify(d));
@@ -326,7 +287,7 @@
       save();
       renderUI();
       document.getElementById('autoStatus').innerText = 'Auto-Click فعال';
-      clearInterval(ai);
+      clearInterval(ai); // پاک کردن interval قبلی
       clearTimeout(at);
       let c = 0;
       ai = setInterval(() => {
@@ -353,7 +314,6 @@
       for (let i = 1; i <= 5; i++) {
         const btn = document.createElement('button');
         btn.innerText = (i <= u.floors ? '✅ ' : '🪙 ') + `طبقه ${i} - ${i * 1000} سکه`;
-        btn.setAttribute('aria-label', `خرید طبقه ${i}`);
         if (i <= u.floors) btn.disabled = true;
         else btn.onclick = () => buyFloor(i);
         ct.appendChild(btn);
@@ -393,7 +353,7 @@
     function startEvent() {
       const u = db[currentUser];
       if (u.coins < 1100) return alert('۱۱۰۰ سکه لازم است');
-      clearInterval(evInterval);
+      clearInterval(evInterval); // پاک کردن interval قبلی
       clearTimeout(reactionTimeout);
       u.coins -= 1100;
       save();
@@ -427,8 +387,6 @@
         const btnL = document.createElement('button'), btnB = document.createElement('button');
         btnL.innerText = 'نور';
         btnB.innerText = 'ببند';
-        btnL.setAttribute('aria-label', 'نور');
-        btnB.setAttribute('aria-label', 'ببند');
         btnL.disabled = btnB.disabled = true;
         if (i === idx) {
           btnL.disabled = btnB.disabled = false;
@@ -463,4 +421,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
