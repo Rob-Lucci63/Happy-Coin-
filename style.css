@@ -1,0 +1,10 @@
+body { direction: rtl; text-align: right; background: #fffbe6; font-family: Tahoma, sans-serif; }
+body.dark { background: #121212; color: #eee; }
+.toast {
+  position: fixed; top: 30px; right: 30px; background: #333a; color: #fff;
+  padding: 10px 20px; border-radius: 8px; z-index: 9999; transition: opacity .5s;
+}
+.btn { background: #c29200; color: #fff; border: none; border-radius: 5px; padding: 10px; }
+.btn:hover:not(:disabled) { background: #a17300; }
+input { font-size: 1rem; padding: 10px; width: 80%; border: 2px solid #c29200; border-radius: 5px; }
+...
