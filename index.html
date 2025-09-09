@@ -1,4 +1,5 @@
-<!DOCTYPE html><html lang="fa">
+<!DOCTYPE html>
+<html lang="fa">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -6,6 +7,7 @@
   <!-- CryptoJS AES -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
+    /* --- پایه و تم --- */
     body { direction: rtl; text-align: right; background: #fffbe6; font-family: Tahoma, sans-serif; padding: 20px; transition: background .3s, color .3s; overflow-y: auto; }
     body.dark { background: #121212; color: #eee; }
     #loginDiv, #gameDiv { max-width: 480px; margin: 20px auto; }
@@ -38,15 +40,61 @@
       font-size: 1rem; box-shadow: 0 2px 8px #0003;
       pointer-events: none;
     }
+
+    /* --- بنر تبلیغ ثابت (sticky promo) --- */
+    #stickyPromo {
+      position: fixed;
+      bottom: 22px;
+      left: 22px; /* سمت چپ تا با دکمه دیسکورد سمت راست تداخل نداشته باشه */
+      width: 190px;
+      background: linear-gradient(180deg,#fff7d9,#ffeb99);
+      border: 2px solid #c29200;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+      z-index: 10000;
+      text-align: center;
+      padding: 12px;
+      cursor: pointer;
+      transition: transform .15s, box-shadow .15s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      user-select: none;
+    }
+    #stickyPromo img { width:56px; height:56px; border-radius:8px; }
+    #stickyPromo strong { font-size: 0.95rem; color: #222; }
+    #stickyPromo p { margin: 0; font-size: 0.78rem; color: #333; }
+    #stickyPromo button { margin-top: 6px; padding: 7px 12px; background:#00bfff; color:#fff; border:none; border-radius:8px; font-size:0.85rem; cursor:pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
+    #stickyPromo:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 10px 26px rgba(0,0,0,0.28); }
+
+    /* --- دکمه لاگ خطا و پنل لاگ (استایل داخلی ساخته میشه با JS اما یه حداقل استایل) --- */
+    #errorBtn { position: fixed; top: 20px; left: 22px; z-index: 10001; font-family: Tahoma, sans-serif; }
+    #logPanel { position: fixed; top: 70px; left: 22px; z-index: 10001; display:none; width: 320px; max-height: 60vh; overflow-y:auto; }
+    #logPanel .inner { background:#111; color:#00ffea; padding:12px; border-radius:10px; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
+    #logPanel h4 { margin:0 0 8px 0; color:#fff; }
+    #logPanel p { margin:6px 0; color:#ff9aa2; font-size:0.9rem; word-break:break-word; }
+    #logPanel .controls { display:flex; justify-content:space-between; gap:6px; margin-top:8px; }
+    #logPanel .controls button { padding:6px 8px; font-size:0.85rem; border-radius:6px; }
   </style>
 </head>
 <body>
+
+  <!-- بنر تبلیغ ثابت (همیشه دیده می‌شود) -->
+  <div id="stickyPromo" title="رفیق! شروع کن و وارد نبرد Happy Coin شو">
+    <img src="https://rob-lucci63.github.io/Happy-Coin-Crypto-War/coin.png" alt="Happy Coin">
+    <strong>Happy Coin</strong>
+    <p>Crypto War</p>
+    <button id="stickyBtn">شروع</button>
+  </div>
+
   <div id="loginDiv">
     <h2>Happy Coin 🎮</h2>
     <input id="usernameInput" placeholder="اسم خود را وارد کنید" aria-label="نام کاربری" />
     <br>
     <button id="loginBtn" type="button">ورود / ثبت‌نام</button>
   </div>
+
   <div id="gameDiv" style="display:none;">
     <h2>سلام <span id="userDisplay"></span>!</h2>
     <canvas id="coinCanvas" width="120" height="120"></canvas>
@@ -69,9 +117,11 @@
       نسخه: 0.4.7 | ساخته شده توسط <strong>Rob Lucci</strong>
     </div>
   </div>
+
   <div id="discordButton" onclick="window.open('https://discord.gg/pjF32Hy3vT', '_blank')">
     <img src="https://cdn-icons-png.flaticon.com/512/2111/2111370.png" alt="Discord Chat">
   </div>
+
   <div id="eventContainer">
     <div id="eventContent">
       <h3>چالش پنجره‌ها</h3>
@@ -81,7 +131,10 @@
       <button id="closeEventBtn" type="button">خروج</button>
     </div>
   </div>
+
+  <!-- اسکریپت اصلی بازی -->
   <script>
+    /* بازی اصلی (بدون تغییر عملکرد) */
     function showToast(msg, color = "#333a") {
       let toast = document.createElement('div');
       toast.className = "toast";
@@ -235,6 +288,125 @@
         showToast('📛 باختی یا دیر شدی','#a73');
       }
     }
+
+    /* --- بنر تبلیغ تعامل --- */
+    const sticky = document.getElementById('stickyPromo');
+    const stickyBtn = document.getElementById('stickyBtn');
+    stickyBtn.onclick = function(e) {
+      e.stopPropagation();
+      window.open('https://rob-lucci63.github.io/Happy-Coin-Crypto-War/', '_blank');
+    }
+    sticky.onclick = function() {
+      window.open('https://rob-lucci63.github.io/Happy-Coin-Crypto-War/', '_blank');
+    }
+    sticky.onmouseover = () => sticky.style.transform = 'translateY(-4px) scale(1.03)';
+    sticky.onmouseout = () => sticky.style.transform = 'translateY(0) scale(1)';
+
   </script>
+
+  <!-- سیستم لاگ خطا (دکمه قرمز + پنل لاگ) -->
+  <script>
+    (function(){
+      // ساخت دکمه و پنل لاگ
+      const errorBtn = document.createElement("button");
+      errorBtn.id = "errorBtn";
+      errorBtn.textContent = "خطا! (0)";
+      errorBtn.style.cssText = `
+        background:#444; color:#fff; padding:8px 12px;
+        border:none; border-radius:8px; display:inline-block; cursor:pointer;
+      `;
+      // دکمه رو به صفحه اضافه کن (کنار بنر تبلیغ)
+      document.body.appendChild(errorBtn);
+
+      const logPanel = document.createElement("div");
+      logPanel.id = "logPanel";
+      logPanel.innerHTML = `<div class="inner"><h4>لاگ خطاها</h4><div class="list"></div><div class="controls"><button id="clearLogsBtn">پاک کردن</button><button id="downloadLogsBtn">دانلود</button></div></div>`;
+      document.body.appendChild(logPanel);
+
+      const listDiv = logPanel.querySelector('.list');
+      const clearBtn = logPanel.querySelector('#clearLogsBtn');
+      const downloadBtn = logPanel.querySelector('#downloadLogsBtn');
+
+      let errors = [];
+
+      function updateButton(){
+        if(errors.length === 0){
+          errorBtn.style.display = 'none';
+        } else {
+          errorBtn.style.display = 'inline-block';
+          errorBtn.style.background = '#ff4c6b';
+          errorBtn.textContent = `خطا! (${errors.length})`;
+        }
+      }
+
+      function addError(msg){
+        const timestamp = new Date().toLocaleString();
+        errors.push({msg, timestamp});
+        const p = document.createElement('p');
+        p.innerHTML = `<span style="color:#00ffff;font-size:0.82em;">[${timestamp}]</span> ${escapeHtml(msg)}`;
+        listDiv.prepend(p);
+        updateButton();
+      }
+
+      // Escape ساده برای امنیت نمایش
+      function escapeHtml(s){
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      }
+
+      errorBtn.addEventListener('click', (e)=>{
+        e.stopPropagation();
+        logPanel.style.display = (logPanel.style.display === 'block') ? 'none' : 'block';
+      });
+
+      clearBtn.addEventListener('click', ()=>{
+        errors = [];
+        listDiv.innerHTML = '';
+        updateButton();
+      });
+
+      downloadBtn.addEventListener('click', ()=>{
+        if(errors.length === 0){ showToast('خطایی برای دانلود نیست','#a73'); return; }
+        const text = errors.map(e => `[${e.timestamp}] ${e.msg}`).join('\n\n');
+        const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `happycoin-logs-${(new Date()).toISOString().slice(0,19).replace(/[:T]/g,'-')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      });
+
+      // register window error
+      window.onerror = function(message, source, lineno, colno, error) {
+        const errorMsg = `پیغام: ${message} | فایل: ${source || 'ناشناخته'} | خط: ${lineno || '?'} , ستون: ${colno || '?'}`;
+        addError(errorMsg);
+        // return false; // allow default console logging as well
+      };
+
+      // also catch unhandled promise rejections
+      window.addEventListener('unhandledrejection', function(evt){
+        addError('UnhandledPromiseRejection: ' + (evt.reason && (evt.reason.message || evt.reason)) );
+      });
+
+      // Expose a helper to log custom errors from game code
+      window.HC_logError = function(msg){
+        addError('ManualLog: ' + msg);
+      };
+
+      // initial hide
+      updateButton();
+
+      // close log panel when clicking outside
+      document.addEventListener('click', function(e){
+        if(!logPanel.contains(e.target) && e.target !== errorBtn) logPanel.style.display = 'none';
+      });
+
+      // small touch: allow dragging the stickyPromo a bit (optional, non-intrusive)
+      // (keep default behavior simple — not required)
+    })();
+  </script>
+
 </body>
   </html>
