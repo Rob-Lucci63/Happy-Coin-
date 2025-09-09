@@ -3,11 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Happy Coin - نسخه 0.4.7</title>
+  <title>Happy Coin - نسخه 0.4.7 (با لاگ)</title>
   <!-- CryptoJS AES -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
   <style>
-    /* --- پایه و تم --- */
+    /* پایه و تم */
     body { direction: rtl; text-align: right; background: #fffbe6; font-family: Tahoma, sans-serif; padding: 20px; transition: background .3s, color .3s; overflow-y: auto; }
     body.dark { background: #121212; color: #eee; }
     #loginDiv, #gameDiv { max-width: 480px; margin: 20px auto; }
@@ -37,15 +37,14 @@
     .toast {
       position: fixed; top: 30px; right: 30px; background: #333a; color: #fff;
       padding: 10px 20px; border-radius: 8px; z-index: 100000; transition: opacity .5s;
-      font-size: 1rem; box-shadow: 0 2px 8px #0003;
-      pointer-events: none;
+      font-size: 1rem; box-shadow: 0 2px 8px #0003; pointer-events: none;
     }
 
-    /* --- بنر تبلیغ ثابت (sticky promo) --- */
+    /* بنر تبلیغ ثابت (sticky promo) */
     #stickyPromo {
       position: fixed;
       bottom: 22px;
-      left: 22px; /* سمت چپ تا با دکمه دیسکورد سمت راست تداخل نداشته باشه */
+      left: 22px;
       width: 190px;
       background: linear-gradient(180deg,#fff7d9,#ffeb99);
       border: 2px solid #c29200;
@@ -68,19 +67,50 @@
     #stickyPromo button { margin-top: 6px; padding: 7px 12px; background:#00bfff; color:#fff; border:none; border-radius:8px; font-size:0.85rem; cursor:pointer; box-shadow: 0 4px 12px rgba(0,0,0,0.12); }
     #stickyPromo:hover { transform: translateY(-4px) scale(1.03); box-shadow: 0 10px 26px rgba(0,0,0,0.28); }
 
-    /* --- دکمه لاگ خطا و پنل لاگ (استایل داخلی ساخته میشه با JS اما یه حداقل استایل) --- */
-    #errorBtn { position: fixed; top: 20px; left: 22px; z-index: 10001; font-family: Tahoma, sans-serif; }
-    #logPanel { position: fixed; top: 70px; left: 22px; z-index: 10001; display:none; width: 320px; max-height: 60vh; overflow-y:auto; }
-    #logPanel .inner { background:#111; color:#00ffea; padding:12px; border-radius:10px; box-shadow: 0 8px 30px rgba(0,0,0,.6); }
-    #logPanel h4 { margin:0 0 8px 0; color:#fff; }
-    #logPanel p { margin:6px 0; color:#ff9aa2; font-size:0.9rem; word-break:break-word; }
-    #logPanel .controls { display:flex; justify-content:space-between; gap:6px; margin-top:8px; }
-    #logPanel .controls button { padding:6px 8px; font-size:0.85rem; border-radius:6px; }
+    /* پنل لاگ همیشه بالا */
+    #logPanel {
+      position: fixed;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #111;
+      color: #00ffea;
+      padding: 12px;
+      border-radius: 8px;
+      z-index: 10002;
+      display: block;
+      min-width: 340px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.6);
+      border: 1px solid #333;
+    }
+    #logPanel h4 { margin: 0 0 8px 0; color:#fff; font-size:1rem; }
+    #logList { max-height: 160px; overflow-y: auto; background: #141414; padding: 8px; border-radius: 6px; color: #ff9aa2; }
+    .logItem { margin-bottom: 6px; font-size: 0.86rem; word-break: break-word; color: #ff9aa2; border-bottom:1px solid rgba(255,255,255,0.03); padding-bottom:4px; }
+    #logButtons { margin-top: 8px; display:flex; justify-content: space-between; gap:8px; }
+    #logButtons button { font-size: 0.85rem; padding: 6px 10px; border-radius:6px; background:#2b2b2b; color:#fff; border:1px solid #333; cursor:pointer; }
+
+    /* دکمه خطا قرمز (نمایش تعداد) */
+    #logBtn {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      background: #6b6b6b;
+      color: white;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      z-index: 10003;
+      font-weight: bold;
+      box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+      transition: transform .12s, box-shadow .12s, background .12s;
+    }
+    #logBtn.active { background: #ff4c6b; transform: translateY(-2px); box-shadow: 0 10px 26px rgba(255,76,107,0.18); }
   </style>
 </head>
 <body>
 
-  <!-- بنر تبلیغ ثابت (همیشه دیده می‌شود) -->
+  <!-- بنر تبلیغ ثابت -->
   <div id="stickyPromo" title="رفیق! شروع کن و وارد نبرد Happy Coin شو">
     <img src="https://rob-lucci63.github.io/Happy-Coin-Crypto-War/coin.png" alt="Happy Coin">
     <strong>Happy Coin</strong>
@@ -88,6 +118,20 @@
     <button id="stickyBtn">شروع</button>
   </div>
 
+  <!-- لاگ پنل همیشه بالا -->
+  <div id="logPanel" aria-live="polite" role="status">
+    <h4>لاگ خطاها</h4>
+    <div id="logList" aria-atomic="true"></div>
+    <div id="logButtons">
+      <button id="clearLogBtn">پاک کردن</button>
+      <button id="focusGameBtn">پرش به بازی</button>
+    </div>
+  </div>
+
+  <!-- دکمه خطا (نمایش تعداد) -->
+  <button id="logBtn">خطا! (0)</button>
+
+  <!-- محتویات بازی -->
   <div id="loginDiv">
     <h2>Happy Coin 🎮</h2>
     <input id="usernameInput" placeholder="اسم خود را وارد کنید" aria-label="نام کاربری" />
@@ -134,7 +178,7 @@
 
   <!-- اسکریپت اصلی بازی -->
   <script>
-    /* بازی اصلی (بدون تغییر عملکرد) */
+    /* ================== ابزارهای کمکی ================== */
     function showToast(msg, color = "#333a") {
       let toast = document.createElement('div');
       toast.className = "toast";
@@ -146,7 +190,7 @@
         setTimeout(() => toast.remove(), 600);
       }, 2000);
     }
-    function sanitize(str) { return str.replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '').substring(0,50); }
+    function sanitize(str) { return String(str || '').replace(/[^a-zA-Z0-9\u0600-\u06FF\s]/g, '').substring(0,50); }
     const hasCrypto = typeof CryptoJS !== 'undefined';
     const AES_KEY = 'SuperStrongKey2025!';
     function encrypt(d) { return hasCrypto ? CryptoJS.AES.encrypt(JSON.stringify(d), AES_KEY).toString() : btoa(JSON.stringify(d)); }
@@ -158,13 +202,19 @@
         } else return JSON.parse(atob(c));
       } catch { return {}; }
     }
+
+    /* ================== دیتاست محلی ================== */
     let db = {}, currentUser = null, ai, evInterval, reactionTimeout, timeLeft;
     const stored = localStorage.getItem('hc_enc'); if (stored) db = decrypt(stored);
     const userEnc = localStorage.getItem('hcUser'); if (userEnc) try { currentUser = hasCrypto ? CryptoJS.AES.decrypt(userEnc, AES_KEY).toString(CryptoJS.enc.Utf8) : atob(userEnc);} catch{}
     function save() { localStorage.setItem('hc_enc', encrypt(db)); if(currentUser){ const ue = hasCrypto ? CryptoJS.AES.encrypt(currentUser, AES_KEY).toString() : btoa(currentUser); localStorage.setItem('hcUser', ue);} }
+
+    /* ================== رسم و تعامل سکه ================== */
     const canvas = document.getElementById('coinCanvas'), ctx = canvas.getContext('2d');
     function drawCoin(){ const cx=60,cy=60,r=50; const g=ctx.createRadialGradient(cx-10,cy-10,10,cx,cy,r); g.addColorStop(0,'#fff2a8'); g.addColorStop(.5,'#ffd700'); g.addColorStop(1,'#b8860b'); ctx.clearRect(0,0,120,120); ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fillStyle=g; ctx.fill(); ctx.lineWidth=4; ctx.strokeStyle='#e5c100'; ctx.stroke(); }
     canvas.addEventListener('click',()=>{ canvas.classList.add('clicked'); setTimeout(()=>canvas.classList.remove('clicked'),200); clickCoin(); });
+
+    /* ================== ورود و نمایش ================== */
     document.getElementById('loginBtn').onclick=()=>{ let name=sanitize(document.getElementById('usernameInput').value.trim()); if(name.length<2){showToast('اسم باید حداقل ۲ حرف باشد','#a73');return;} if(!db[name])db[name]={coins:0,black:0,floors:0,dark:false,cheats:[]}; currentUser=name; save(); showGame(); };
     window.onload=()=>{ if(!window.CryptoJS)showToast('کتابخانه رمزنگاری بارگذاری نشد','#a73'); if(currentUser&&db[currentUser])showGame(); };
     function showGame(){ document.getElementById('loginDiv').style.display='none'; document.getElementById('gameDiv').style.display='block'; renderUI(); bindEvents(); }
@@ -176,76 +226,92 @@
       document.getElementById('eventBtn').onclick=startEvent;
       document.getElementById('closeEventBtn').onclick=()=>finishEvent(false);
     }
-    function clickCoin(){ const u=db[currentUser]; u.coins++; if(u.coins%15===0)u.black++; save(); renderUI(); }
+
+    function clickCoin(){ try {
+      const u=db[currentUser]; u.coins++; if(u.coins%15===0)u.black++; save(); renderUI();
+    } catch(e){ HC_logError && HC_logError('clickCoin error: '+(e && e.message)); } }
+
     function toggleDark(){ const u=db[currentUser]; u.dark=!u.dark; save(); document.body.classList.toggle('dark',u.dark);}
     function buyAuto(){
-      const u=db[currentUser];
-      if(u.black<45){ showToast('سیاه کم است','#a73'); return; }
-      u.black-=45; save(); renderUI();
-      document.getElementById('autoStatus').innerText='Auto-Click فعال';
-      clearInterval(ai); clearTimeout(reactionTimeout);
-      let c=0;
-      ai=setInterval(()=>{
-        if(c>=600){ clearInterval(ai); ai=null; document.getElementById('autoStatus').innerText='Auto-Click پایان'; renderUI(); return;}
-        const uu=db[currentUser];
-        uu.coins++; if(uu.coins%15===0)uu.black++; c++; save(); renderUI();
-      },500);
-      document.getElementById('autoBtn').disabled = true;
+      try {
+        const u=db[currentUser];
+        if(u.black<45){ showToast('سیاه کم است','#a73'); return; }
+        u.black-=45; save(); renderUI();
+        document.getElementById('autoStatus').innerText='Auto-Click فعال';
+        clearInterval(ai); clearTimeout(reactionTimeout);
+        let c=0;
+        ai=setInterval(()=>{
+          if(c>=600){ clearInterval(ai); ai=null; document.getElementById('autoStatus').innerText='Auto-Click پایان'; renderUI(); return;}
+          const uu=db[currentUser];
+          uu.coins++; if(uu.coins%15===0)uu.black++; c++; save(); renderUI();
+        },500);
+        document.getElementById('autoBtn').disabled = true;
+      } catch(e){ HC_logError && HC_logError('buyAuto error: '+(e && e.message)); }
     }
+
     function renderFloors(){
-      const u=db[currentUser], ct=document.getElementById('floors');
-      ct.innerHTML='';
-      for(let i=1;i<=5;i++){
-        const wrap=document.createElement('div');
-        wrap.style.marginBottom='10px';
-        const btn=document.createElement('button');
-        btn.innerText=(i<=u.floors?'✅ ':'🪙 ')+`طبقه ${i} - ${i*1000} سکه`;
-        if(i<=u.floors) btn.disabled=true;
-        else btn.onclick=()=>buyFloor(i);
-        wrap.appendChild(btn);
-        if(i===1 && u.floors>=1){
-          const blackBreakBtn=document.createElement('button');
-          blackBreakBtn.innerText='شکست سکه سیاه';
-          blackBreakBtn.style.marginRight='10px';
-          blackBreakBtn.onclick=()=>window.open('https://rob-lucci63.github.io/One-Ai/','_blank');
-          wrap.appendChild(blackBreakBtn);
+      try {
+        const u=db[currentUser], ct=document.getElementById('floors');
+        ct.innerHTML='';
+        for(let i=1;i<=5;i++){
+          const wrap=document.createElement('div');
+          wrap.style.marginBottom='10px';
+          const btn=document.createElement('button');
+          btn.innerText=(i<=u.floors?'✅ ':'🪙 ')+`طبقه ${i} - ${i*1000} سکه`;
+          if(i<=u.floors) btn.disabled=true;
+          else btn.onclick=()=>buyFloor(i);
+          wrap.appendChild(btn);
+          if(i===1 && u.floors>=1){
+            const blackBreakBtn=document.createElement('button');
+            blackBreakBtn.innerText='شکست سکه سیاه';
+            blackBreakBtn.style.marginRight='10px';
+            blackBreakBtn.onclick=()=>window.open('https://rob-lucci63.github.io/One-Ai/','_blank');
+            wrap.appendChild(blackBreakBtn);
+          }
+          ct.appendChild(wrap);
         }
-        ct.appendChild(wrap);
-      }
+      } catch(e){ HC_logError && HC_logError('renderFloors error: '+(e && e.message)); }
     }
     function buyFloor(i){
-      const u=db[currentUser], cost=i*1000;
-      if(u.coins<cost){showToast('سکه کم است','#a73');return;}
-      u.coins-=cost; u.black+=15; u.floors=i; save(); renderUI(); showToast(`طبقه ${i} خریدی و +15 سیاه`);
+      try {
+        const u=db[currentUser], cost=i*1000;
+        if(u.coins<cost){showToast('سکه کم است','#a73');return;}
+        u.coins-=cost; u.black+=15; u.floors=i; save(); renderUI(); showToast(`طبقه ${i} خریدی و +15 سیاه`);
+      } catch(e){ HC_logError && HC_logError('buyFloor error: '+(e && e.message)); }
     }
     function applyCheat(){
-      let code=prompt('کد تقلب:'); if(!code)return;
-      code=code.trim().toLowerCase(); const u=db[currentUser];
-      if(u.cheats.includes(code)){showToast('کد تکراری','#a73');return;}
-      if(code==='fff')u.coins+=600;
-      else if(code==='ff')u.black+=25;
-      else if(code==='cp9'){u.coins+=1000;u.black+=30;}
-      else if(code==='ty'){u.coins+=2000;u.black+=50;}
-      else{showToast('کد غلط','#a73');return;}
-      u.cheats.push(code); save(); renderUI(); showToast('اعمال شد','#095');
+      try {
+        let code=prompt('کد تقلب:'); if(!code)return;
+        code=code.trim().toLowerCase(); const u=db[currentUser];
+        if(u.cheats.includes(code)){showToast('کد تکراری','#a73');return;}
+        if(code==='fff')u.coins+=600;
+        else if(code==='ff')u.black+=25;
+        else if(code==='cp9'){u.coins+=1000;u.black+=30;}
+        else if(code==='ty'){u.coins+=2000;u.black+=50;}
+        else{showToast('کد غلط','#a73');return;}
+        u.cheats.push(code); save(); renderUI(); showToast('اعمال شد','#095');
+      } catch(e){ HC_logError && HC_logError('applyCheat error: '+(e && e.message)); }
     }
+
     let eventActive = false;
     function startEvent(){
-      if(eventActive) return;
-      const u=db[currentUser];
-      if(u.coins<1100){showToast('۱۱۰۰ سکه لازم است','#a73');return;}
-      clearInterval(evInterval); clearTimeout(reactionTimeout);
-      u.coins-=1100; save(); renderUI();
-      document.getElementById('eventContainer').style.display='block';
-      timeLeft=60; eventActive = true;
-      document.getElementById('timer').innerText='زمان: '+timeLeft;
-      scheduleWindow();
-      evInterval=setInterval(()=>{
-        timeLeft--;
+      try {
+        if(eventActive) return;
+        const u=db[currentUser];
+        if(u.coins<1100){showToast('۱۱۰۰ سکه لازم است','#a73');return;}
+        clearInterval(evInterval); clearTimeout(reactionTimeout);
+        u.coins-=1100; save(); renderUI();
+        document.getElementById('eventContainer').style.display='block';
+        timeLeft=60; eventActive = true;
         document.getElementById('timer').innerText='زمان: '+timeLeft;
-        if(timeLeft<=0) finishEvent(true);
-        else scheduleWindow();
-      },3000);
+        scheduleWindow();
+        evInterval=setInterval(()=>{
+          timeLeft--;
+          document.getElementById('timer').innerText='زمان: '+timeLeft;
+          if(timeLeft<=0) finishEvent(true);
+          else scheduleWindow();
+        },3000);
+      } catch(e){ HC_logError && HC_logError('startEvent error: '+(e && e.message)); }
     }
     function scheduleWindow(){
       clearTimeout(reactionTimeout);
@@ -289,7 +355,7 @@
       }
     }
 
-    /* --- بنر تبلیغ تعامل --- */
+    /* بنر تبلیغ تعامل */
     const sticky = document.getElementById('stickyPromo');
     const stickyBtn = document.getElementById('stickyBtn');
     stickyBtn.onclick = function(e) {
@@ -304,107 +370,88 @@
 
   </script>
 
-  <!-- سیستم لاگ خطا (دکمه قرمز + پنل لاگ) -->
+  <!-- سیستم لاگ: نمایش مستقیم داخل پنل بالای صفحه (بدون دانلود) -->
   <script>
     (function(){
-      // ساخت دکمه و پنل لاگ
-      const errorBtn = document.createElement("button");
-      errorBtn.id = "errorBtn";
-      errorBtn.textContent = "خطا! (0)";
-      errorBtn.style.cssText = `
-        background:#444; color:#fff; padding:8px 12px;
-        border:none; border-radius:8px; display:inline-block; cursor:pointer;
-      `;
-      // دکمه رو به صفحه اضافه کن (کنار بنر تبلیغ)
-      document.body.appendChild(errorBtn);
+      const logList = document.getElementById('logList');
+      const logBtn = document.getElementById('logBtn');
+      const clearBtn = document.getElementById('clearLogBtn');
+      const focusBtn = document.getElementById('focusGameBtn');
+      let logs = [];
 
-      const logPanel = document.createElement("div");
-      logPanel.id = "logPanel";
-      logPanel.innerHTML = `<div class="inner"><h4>لاگ خطاها</h4><div class="list"></div><div class="controls"><button id="clearLogsBtn">پاک کردن</button><button id="downloadLogsBtn">دانلود</button></div></div>`;
-      document.body.appendChild(logPanel);
-
-      const listDiv = logPanel.querySelector('.list');
-      const clearBtn = logPanel.querySelector('#clearLogsBtn');
-      const downloadBtn = logPanel.querySelector('#downloadLogsBtn');
-
-      let errors = [];
-
-      function updateButton(){
-        if(errors.length === 0){
-          errorBtn.style.display = 'none';
-        } else {
-          errorBtn.style.display = 'inline-block';
-          errorBtn.style.background = '#ff4c6b';
-          errorBtn.textContent = `خطا! (${errors.length})`;
-        }
-      }
-
-      function addError(msg){
-        const timestamp = new Date().toLocaleString();
-        errors.push({msg, timestamp});
-        const p = document.createElement('p');
-        p.innerHTML = `<span style="color:#00ffff;font-size:0.82em;">[${timestamp}]</span> ${escapeHtml(msg)}`;
-        listDiv.prepend(p);
-        updateButton();
-      }
-
-      // Escape ساده برای امنیت نمایش
       function escapeHtml(s){
         return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       }
 
-      errorBtn.addEventListener('click', (e)=>{
-        e.stopPropagation();
-        logPanel.style.display = (logPanel.style.display === 'block') ? 'none' : 'block';
-      });
+      function updateBtn(){
+        if(logs.length === 0){
+          logBtn.textContent = 'خطا! (0)';
+          logBtn.classList.remove('active');
+        } else {
+          logBtn.textContent = `خطا! (${logs.length})`;
+          logBtn.classList.add('active');
+        }
+      }
 
-      clearBtn.addEventListener('click', ()=>{
-        errors = [];
-        listDiv.innerHTML = '';
-        updateButton();
-      });
-
-      downloadBtn.addEventListener('click', ()=>{
-        if(errors.length === 0){ showToast('خطایی برای دانلود نیست','#a73'); return; }
-        const text = errors.map(e => `[${e.timestamp}] ${e.msg}`).join('\n\n');
-        const blob = new Blob([text], {type: 'text/plain;charset=utf-8'});
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `happycoin-logs-${(new Date()).toISOString().slice(0,19).replace(/[:T]/g,'-')}.txt`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-      });
-
-      // register window error
-      window.onerror = function(message, source, lineno, colno, error) {
-        const errorMsg = `پیغام: ${message} | فایل: ${source || 'ناشناخته'} | خط: ${lineno || '?'} , ستون: ${colno || '?'}`;
-        addError(errorMsg);
-        // return false; // allow default console logging as well
-      };
-
-      // also catch unhandled promise rejections
-      window.addEventListener('unhandledrejection', function(evt){
-        addError('UnhandledPromiseRejection: ' + (evt.reason && (evt.reason.message || evt.reason)) );
-      });
-
-      // Expose a helper to log custom errors from game code
       window.HC_logError = function(msg){
-        addError('ManualLog: ' + msg);
+        // manual logs from game: keep short and safe
+        addLog('Manual: '+msg);
       };
 
-      // initial hide
-      updateButton();
+      function addLog(rawMsg){
+        const ts = new Date().toLocaleString();
+        const safe = escapeHtml(rawMsg);
+        const item = document.createElement('div');
+        item.className = 'logItem';
+        item.innerHTML = `<span style="color:#8ef0ff;font-size:0.85rem;">[${ts}]</span> ${safe}`;
+        logList.appendChild(item);
+        // keep recent at bottom and auto-scroll to last
+        logList.scrollTop = logList.scrollHeight;
+        logs.push({ts, msg: rawMsg});
+        updateBtn();
+      }
 
-      // close log panel when clicking outside
-      document.addEventListener('click', function(e){
-        if(!logPanel.contains(e.target) && e.target !== errorBtn) logPanel.style.display = 'none';
+      // wire to JS global errors
+      window.onerror = function(message, source, lineno, colno, error) {
+        const src = source || 'ناشناخته';
+        const ln = lineno || '?';
+        const cn = colno || '?';
+        const m = `پیغام: ${message} | فایل: ${src} | خط: ${ln}, ستون: ${cn}`;
+        addLog(m);
+        // also let console show original
+        return false;
+      };
+
+      window.addEventListener('unhandledrejection', function(evt){
+        const reason = (evt.reason && (evt.reason.message || evt.reason)) || String(evt.reason);
+        addLog('UnhandledPromiseRejection: ' + reason);
       });
 
-      // small touch: allow dragging the stickyPromo a bit (optional, non-intrusive)
-      // (keep default behavior simple — not required)
+      // clear logs
+      clearBtn.addEventListener('click', ()=>{
+        logs = []; logList.innerHTML = ''; updateBtn();
+        showToast('لاگ‌ها پاک شدند','#333a');
+      });
+
+      // focus game (scroll) button
+      focusBtn.addEventListener('click', ()=>{
+        document.getElementById('gameDiv').scrollIntoView({behavior:'smooth', block:'center'});
+      });
+
+      // clicking the top-right logBtn highlights panel briefly
+      logBtn.addEventListener('click', ()=>{
+        const p = document.getElementById('logPanel');
+        p.style.boxShadow = '0 14px 40px rgba(255,76,107,0.16)';
+        setTimeout(()=> p.style.boxShadow = '0 8px 30px rgba(0,0,0,.6)', 900);
+        // also jump to panel
+        p.scrollIntoView({behavior:'smooth', block:'center'});
+      });
+
+      // initial state
+      updateBtn();
+
+      // small helper: when game code wants to log something intentionally
+      // use: window.HC_logError("some message")
     })();
   </script>
 
