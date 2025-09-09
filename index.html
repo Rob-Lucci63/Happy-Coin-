@@ -3,13 +3,13 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Happy Coin - نسخه 0.4.9 (آپدیت موقعیت تبلیغ)</title>
+<title>Happy Coin - نسخه 0.4.9 با دارک مود واقعی</title>
 <style>
-  body { direction: rtl; font-family: Tahoma, sans-serif; background: #fffbe6; text-align: right; overflow-x:hidden; }
+  body { direction: rtl; font-family: Tahoma, sans-serif; background: #fffbe6; text-align: right; overflow-x:hidden; color:#000; transition: background .4s, color .4s; }
   #loginDiv, #gameDiv { max-width: 480px; margin: 20px auto; }
-  input, button { font-size: 1rem; padding: 10px; margin: 5px; }
+  input, button { font-size: 1rem; padding: 10px; margin: 5px; transition: background .3s, color .3s; }
   input { width: 80%; border: 2px solid #c29200; border-radius: 5px; }
-  button { background: #c29200; color: #fff; border: none; border-radius: 5px; cursor: pointer; transition: background .3s; }
+  button { background: #c29200; color: #fff; border: none; border-radius: 5px; cursor: pointer; }
   button:hover { background: #a17300; }
   #coinCanvas { cursor: pointer; margin-top: 20px; transition: transform .2s; }
   #coinCanvas.clicked { transform: scale(1.1); }
@@ -17,26 +17,58 @@
   .section { border: 2px solid #c29200; padding: 10px; margin-top: 20px; border-radius: 6px; background: #fff8d6; }
   #autoStatus { margin-top: 10px; color: #070; }
 
-  /* تبلیغ گرافیکی کنار سکه */
+  /* --- دارک مود --- */
+  body.dark { background: #121212; color: #eee; }
+  body.dark input { background:#222; color:#fff; border-color:#555; }
+  body.dark button { background:#444; color:#fff; }
+  body.dark button:hover { background:#666; }
+  body.dark .section { background:#1e1e1e; border-color:#555; }
+
+  /* بنر تبلیغ */
   #coinPromo {
-    width: 200px; height: 80px;
+    position: fixed;
+    width: 200px;
+    height: 80px;
     background: linear-gradient(135deg, #ffe066, #ff7f50);
     border-radius: 16px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    z-index: 1000; cursor: pointer; box-shadow: 0 8px 20px rgba(0,0,0,0.3);
-    overflow: hidden; animation: float 3s ease-in-out infinite alternate;
-    position: fixed; /* موقعیت ثابت نسبت به viewport */
-    left: 50px; top: 150px; /* مقدار اولیه؛ تابع جاگذاری اصلاحش می‌کنه */
-    transform-origin: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.3);
+    overflow: hidden;
+    animation: float 3s ease-in-out infinite alternate;
   }
-  #coinPromo span { font-weight: bold; font-size: 1rem; color: #fff; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }
-  #coinPromo button { margin-top: 5px; padding: 6px 12px; background: #00bfff; border: none; border-radius: 10px; color: #fff; font-weight: bold; cursor: pointer; animation: pulse 1.5s infinite; }
+  #coinPromo span {
+    font-weight: bold;
+    font-size: 1rem;
+    color: #fff;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+  }
+  #coinPromo button {
+    margin-top: 5px;
+    padding: 6px 12px;
+    background: #00bfff;
+    border: none;
+    border-radius: 10px;
+    color: #fff;
+    font-weight: bold;
+    cursor: pointer;
+    animation: pulse 1.5s infinite;
+  }
 
-  @keyframes float {0%{transform:translateY(0) rotate(-2deg);}50%{transform:translateY(-8px) rotate(2deg);}100%{transform:translateY(0) rotate(-2deg);}}
-  @keyframes pulse {0%{transform:scale(1);}50%{transform:scale(1.08);}100%{transform:scale(1);}}
-
-  /* اگر می‌خوای کمتر مزاحم باشه می‌تونی opacity یا scale اولیه رو تغییر بدی */
-  #coinPromo.subtle { opacity: 0.95; transform: scale(0.98); }
+  @keyframes float {
+    0% { transform: translateY(0) rotate(-2deg); }
+    50% { transform: translateY(-6px) rotate(2deg); }
+    100% { transform: translateY(0) rotate(-2deg); }
+  }
+  @keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+    100% { transform: scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -54,10 +86,10 @@
   <div id="count">سکه: 0</div>
   <div id="blackCount">سیاه: 0</div>
 
-  <!-- تبلیغ کنار سکه -->
-  <div id="coinPromo" aria-hidden="false">
-    <span>💰 Happy Coin:Crypto War!</span>
-    <button id="promoBtn" aria-label="شروع">شروع</button>
+  <!-- تبلیغ -->
+  <div id="coinPromo">
+    <span>💰 Happy Coin!</span>
+    <button id="promoBtn">شروع</button>
   </div>
 
   <div class="section">
@@ -80,198 +112,107 @@
 </div>
 
 <script>
-/* --------------------- ذخیره / بارگذاری --------------------- */
-let db={}, currentUser=null;
+  // --- ذخیره و بارگذاری ---
+  let db = {}, currentUser = null;
+  function save(){ if(currentUser) localStorage.setItem('hcUser', currentUser); localStorage.setItem('hcData', JSON.stringify(db)); }
+  function load(){ const stored=localStorage.getItem('hcData'); if(stored) db=JSON.parse(stored); const u=localStorage.getItem('hcUser'); if(u) currentUser=u; }
+  load();
 
-function save(){
-  try{
-    if(currentUser) localStorage.setItem('hcUser', currentUser);
-    localStorage.setItem('hcData', JSON.stringify(db));
-  }catch(e){
-    console.warn('save error', e);
-  }
-}
-function load(){
-  try{
-    const stored=localStorage.getItem('hcData');
-    if(stored) db=JSON.parse(stored);
-    const u=localStorage.getItem('hcUser');
-    if(u) currentUser=u;
-  }catch(e){
-    console.warn('load error', e);
-  }
-}
-load();
-
-/* --------------------- UI اصلی و بازی --------------------- */
-const loginBtn=document.getElementById('loginBtn');
-const usernameInput=document.getElementById('usernameInput');
-const canvas=document.getElementById('coinCanvas'), ctx=canvas.getContext('2d');
-
-loginBtn.onclick=()=>{
-  const name = String(usernameInput.value || '').trim();
-  if(name.length < 2){ alert('اسم کوتاه است'); return; }
-  if(!db[name]) db[name] = { coins:0, black:0, floors:0, dark:false, cheats:[] };
-  currentUser = name;
-  save();
-  showGame();
-};
-
-// ورود خودکار اگر قبلا لاگین شده
-window.addEventListener('DOMContentLoaded', ()=>{
-  if(currentUser && db[currentUser]) {
-    // یک تأخیر کوچک برای اطمینان از رندر کامل DOM
-    setTimeout(()=> {
-      try{ showGame(); }catch(e){ console.warn('autologin showGame error', e); }
-    }, 50);
-  }
-});
-
-function showGame(){
-  document.getElementById('loginDiv').style.display = 'none';
-  document.getElementById('gameDiv').style.display = 'block';
-  document.getElementById('userDisplay').innerText = currentUser;
-  renderUI();
-  bindEvents();
-  initPromoPositioning(); // موقعیت‌دهی تبلیغ
-}
-
-function renderUI(){
-  const u = db[currentUser] || { coins:0, black:0, floors:0, dark:false };
-  document.getElementById('count').innerText = 'سکه: ' + (u.coins || 0);
-  document.getElementById('blackCount').innerText = 'سیاه: ' + (u.black || 0);
-  document.body.classList.toggle('dark', !!u.dark);
-  drawCoin();
-  renderFloors();
-}
-
-/* سکه */
-function drawCoin(){
-  try{
-    const cx=60, cy=60, r=50;
-    const g=ctx.createRadialGradient(cx-10,cy-10,10,cx,cy,r);
-    g.addColorStop(0,'#fff2a8'); g.addColorStop(.5,'#ffd700'); g.addColorStop(1,'#b8860b');
-    ctx.clearRect(0,0,120,120);
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI);
-    ctx.fillStyle=g; ctx.fill(); ctx.lineWidth=4; ctx.strokeStyle='#e5c100'; ctx.stroke();
-  }catch(e){
-    console.warn('drawCoin error', e);
-  }
-}
-canvas.addEventListener('click', ()=>{ canvas.classList.add('clicked'); setTimeout(()=>canvas.classList.remove('clicked'),200); clickCoin(); });
-
-function clickCoin(){
-  try{
-    const u = db[currentUser];
-    u.coins = (u.coins||0) + 1;
-    if(u.coins % 15 === 0) u.black = (u.black||0) + 1;
-    save(); renderUI();
-  }catch(e){ console.warn('clickCoin error', e); }
-}
-
-/* رویدادها و دکمه‌ها */
-function bindEvents(){
-  document.getElementById('darkModeBtn').onclick = ()=>{ const u=db[currentUser]; u.dark = !u.dark; save(); renderUI(); };
-  document.getElementById('autoBtn').onclick = buyAuto;
-  document.getElementById('cheatBtn').onclick = applyCheat;
-  document.getElementById('eventBtn').onclick = startEvent;
-  document.getElementById('promoBtn').onclick = ()=> window.open('https://rob-lucci63.github.io/Happy-Coin-Crypto-War/','_blank');
-}
-
-/* خرید اتو و طبقات و تقلب */
-function buyAuto(){
-  try{
-    const u = db[currentUser];
-    if((u.black||0) < 45){ alert('سیاه کم است'); return; }
-    u.black -= 45; save(); renderUI(); alert('Auto-Click فعال شد');
-  }catch(e){ console.warn('buyAuto error', e); }
-}
-
-function renderFloors(){
-  try{
-    const u = db[currentUser] || {};
-    const ct = document.getElementById('floors'); ct.innerHTML = '';
-    for(let i=1;i<=5;i++){
-      const btn = document.createElement('button');
-      btn.innerText = (i <= (u.floors||0) ? '✅ ':'🪙 ') + 'طبقه '+i+' - '+(i*1000)+' سکه';
-      if(i > (u.floors||0)){
-        btn.onclick = ()=> {
-          if((u.coins||0) < i*1000) { alert('سکه کم است'); return; }
-          u.coins -= i*1000; u.black = (u.black||0) + 15; u.floors = i; save(); renderUI(); alert('خرید شد');
-        };
-      } else { btn.disabled = true; }
-      ct.appendChild(btn);
-    }
-  }catch(e){ console.warn('renderFloors error', e); }
-}
-
-function applyCheat(){ try{
-  let c = prompt('کد تقلب:'); if(!c) return;
-  const u = db[currentUser];
-  c = String(c).trim().toLowerCase();
-  if(c === 'fff') u.coins = (u.coins||0) + 600;
-  else if(c === 'ff') u.black = (u.black||0) + 25;
-  else { alert('کد غلط'); return; }
-  save(); renderUI();
-}catch(e){ console.warn('applyCheat error', e); } }
-
-function startEvent(){ alert('ایونت شروع شد!'); }
-
-/* --------------------- تبلیغ کنار سکه: موقعیت دینامیک و مقاوم --------------------- */
-function positionPromoNearCoin(tryCount = 0){
-  try{
-    const promo = document.getElementById('coinPromo');
-    if(!promo) return;
-    const cRect = canvas.getBoundingClientRect();
-    // اگر canvas هنوز صفره یا خارج از دید هست، تا 5 بار با تأخیر مجدد تلاش کن
-    if((cRect.width === 0 && tryCount < 6) || isNaN(cRect.top)){
-      return setTimeout(()=>positionPromoNearCoin(tryCount+1), 80);
-    }
-    const promoRect = promo.getBoundingClientRect();
-    // محاسبهٔ اولیه: سمت راست کانواس
-    let left = Math.round(cRect.right + 10);
-    let top = Math.round(cRect.top + (cRect.height/2) - (promoRect.height/2));
-
-    // اگر از صفحه بیرون میره سمت چپ بذار
-    if(left + promoRect.width > window.innerWidth - 10){
-      left = Math.round(cRect.left - promoRect.width - 10);
-    }
-    // اطمینان از حداقل فاصله از کناره‌ها
-    if(left < 10) left = 10;
-    if(top < 10) top = 10;
-    if(top + promoRect.height > window.innerHeight - 10) top = Math.max(10, window.innerHeight - promoRect.height - 10);
-
-    // اعمال موقعیت
-    promo.style.left = left + 'px';
-    promo.style.top = top + 'px';
-    // بخاطر animation float که translateY میزنه، position ثابت بهتر دیده میشه
-    promo.style.position = 'fixed';
-  }catch(e){
-    // در صورتی که خطا باشه، یکبار دیگر امتحان کن
-    if(tryCount < 6) setTimeout(()=>positionPromoNearCoin(tryCount+1), 100);
-    console.warn('positionPromo error', e);
-  }
-}
-
-// init: فقط یک دفعه listener ها رو وصل کن
-function initPromoPositioning(){
-  positionPromoNearCoin();
-  if(window._hcPromoResizeInitialized) return;
-  window._hcPromoResizeInitialized = true;
-
-  // throttle helper
-  let tmr = null;
-  const schedule = ()=>{
-    clearTimeout(tmr);
-    tmr = setTimeout(()=>positionPromoNearCoin(), 120);
+  const loginBtn=document.getElementById('loginBtn');
+  const usernameInput=document.getElementById('usernameInput');
+  loginBtn.onclick=()=>{ 
+    const name=usernameInput.value.trim(); 
+    if(name.length<2) return alert('اسم کوتاه است'); 
+    if(!db[name]) db[name]={coins:0,black:0,floors:0,dark:false,cheats:[]}; 
+    currentUser=name; save(); showGame(); 
   };
-  window.addEventListener('resize', schedule);
-  window.addEventListener('orientationchange', schedule);
-  window.addEventListener('scroll', schedule, { passive: true });
-}
+  
+  function showGame(){
+    document.getElementById('loginDiv').style.display='none';
+    document.getElementById('gameDiv').style.display='block';
+    document.getElementById('userDisplay').innerText=currentUser;
+    renderUI();
+    bindEvents();
+    initPromoPositioning();
+  }
 
-/* --------------------- آماده به کار --------------------- */
+  function renderUI(){ 
+    const u=db[currentUser]; 
+    document.getElementById('count').innerText='سکه: '+u.coins; 
+    document.getElementById('blackCount').innerText='سیاه: '+u.black; 
+    document.body.classList.toggle('dark', u.dark); 
+    drawCoin(); renderFloors(); 
+  }
+
+  const canvas=document.getElementById('coinCanvas'), ctx=canvas.getContext('2d');
+  function drawCoin(){ 
+    const cx=60,cy=60,r=50; 
+    const g=ctx.createRadialGradient(cx-10,cy-10,10,cx,cy,r); 
+    g.addColorStop(0,'#fff2a8'); g.addColorStop(.5,'#ffd700'); g.addColorStop(1,'#b8860b'); 
+    ctx.clearRect(0,0,120,120); ctx.beginPath(); ctx.arc(cx,cy,r,0,2*Math.PI); ctx.fillStyle=g; ctx.fill(); ctx.lineWidth=4; ctx.strokeStyle='#e5c100'; ctx.stroke(); 
+  }
+  canvas.addEventListener('click',()=>{ canvas.classList.add('clicked'); setTimeout(()=>canvas.classList.remove('clicked'),200); clickCoin(); });
+  function clickCoin(){ const u=db[currentUser]; u.coins++; if(u.coins%15===0) u.black++; save(); renderUI(); }
+
+  function bindEvents(){
+    document.getElementById('darkModeBtn').onclick=()=>{ const u=db[currentUser]; u.dark=!u.dark; save(); renderUI(); };
+    document.getElementById('autoBtn').onclick=buyAuto;
+    document.getElementById('cheatBtn').onclick=applyCheat;
+    document.getElementById('eventBtn').onclick=startEvent;
+    document.getElementById('promoBtn').onclick=()=> window.open('https://rob-lucci63.github.io/Happy-Coin-Crypto-War/','_blank');
+  }
+
+  function buyAuto(){ const u=db[currentUser]; if(u.black<45){ alert('سیاه کم است'); return;} u.black-=45; save(); renderUI(); alert('Auto-Click فعال شد'); }
+
+  function renderFloors(){ 
+    const u=db[currentUser]; 
+    const ct=document.getElementById('floors'); ct.innerHTML=''; 
+    for(let i=1;i<=5;i++){ 
+      const btn=document.createElement('button'); 
+      btn.innerText=(i<=u.floors?'✅ ':'🪙 ')+'طبقه '+i+' - '+i*1000+' سکه'; 
+      if(i>u.floors) btn.onclick=()=>{ 
+        if(u.coins<i*1000) alert('سکه کم است'); 
+        else { u.coins-=i*1000; u.black+=15; u.floors=i; save(); renderUI(); alert('خرید شد'); } 
+      } 
+      ct.appendChild(btn); 
+    }
+  }
+  function applyCheat(){ let c=prompt('کد تقلب:'); if(!c) return; const u=db[currentUser]; if(c==='fff') u.coins+=600; else if(c==='ff') u.black+=25; else alert('کد غلط'); save(); renderUI(); }
+
+  function startEvent(){ alert('ایونت شروع شد!'); }
+
+  // --- ورود خودکار اگر کاربر ذخیره شده وجود داشت ---
+  window.addEventListener('DOMContentLoaded', () => {
+    if (currentUser && db[currentUser]) {
+      setTimeout(() => showGame(), 50);
+    }
+  });
+
+  // --- تبلیغ کنار سکه ---
+  function positionPromoNearCoin() {
+    const promo = document.getElementById('coinPromo');
+    const canvas = document.getElementById('coinCanvas');
+    if (!promo || !canvas) return;
+    const cRect = canvas.getBoundingClientRect();
+    const promoRect = promo.getBoundingClientRect();
+    let left = cRect.right + 10;
+    let top = cRect.top + (cRect.height/2) - (promoRect.height/2);
+    if (left + promoRect.width > window.innerWidth - 10) {
+      left = cRect.left - promoRect.width - 10;
+    }
+    if (top < 10) top = 10;
+    if (top + promoRect.height > window.innerHeight - 10) top = window.innerHeight - promoRect.height - 10;
+    promo.style.left = `${Math.round(left)}px`;
+    promo.style.top = `${Math.round(top)}px`;
+    promo.style.position = 'fixed';
+  }
+  function initPromoPositioning() {
+    positionPromoNearCoin();
+    window.addEventListener('resize', () => {
+      clearTimeout(window._hcPromoResizeTimer);
+      window._hcPromoResizeTimer = setTimeout(positionPromoNearCoin, 120);
+    });
+  }
 </script>
-
 </body>
 </html>
